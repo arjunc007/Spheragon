@@ -4,36 +4,31 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
+    public Shape shape;
 
-    public List<Tile> neighbourList = new List<Tile>();
-
-    private CircleCollider2D circleCollider2D;
+    public List<Tile> neighbours = new List<Tile>();
 
     public int owner = 0;
     private Animator anim;
 
-    public void SetupTile()
+    public void Start()
     {
-        anim = GetComponent<Animator>();
-
-        circleCollider2D = GetComponent<CircleCollider2D>();
-        //circleCollider2D.radius = HexGrid.outerRadius;
-
         FindNeighbours();
 
-        //circleCollider2D.radius = HexGrid.innerRadius;
+        if (neighbours.Count == 6)
+            shape = Shape.Hexagon;
+        else
+            shape = Shape.Pentagon;
     }
 
     private void FindNeighbours()
     {
-        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, HexGrid.outerRadius);
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, GameManager.TileRadius);
 
-        foreach (Collider2D collider in hitColliders)
+        foreach (var collider in hitColliders)
         {
-            if (collider.name == "HexagonTile(Clone)" && collider.transform.position != transform.position)
-            {
-                neighbourList.Add(collider.GetComponent<Tile>());
-            }
+            if(collider.gameObject != gameObject)
+                neighbours.Add(collider.GetComponent<Tile>());
         }
     }
 
@@ -67,7 +62,7 @@ public class Tile : MonoBehaviour
     {
         yield return new WaitForSeconds(0.2f);
 
-        foreach (Tile neighbor in neighbourList)
+        foreach (Tile neighbor in neighbours)
         {
             if (neighbor.owner == 0 || neighbor.owner == owner)
                 continue;
@@ -88,7 +83,7 @@ public class Tile : MonoBehaviour
     public int GetBlueNeighbors()
     {
         int count = 0;
-        foreach (Tile neighbor in neighbourList)
+        foreach (Tile neighbor in neighbours)
         {
             if (neighbor.owner == 1)
                 count++;
