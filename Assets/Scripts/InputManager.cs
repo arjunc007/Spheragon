@@ -8,7 +8,10 @@ public class InputManager : MonoBehaviour {
     private Vector3 dragLength;
 
     private Vector3 initialMousePosition;
+    private Vector3 lastMousePosition;
     private Vector3 finalMousePosition;
+
+    Camera cam;
 
     //Events and Delegates
     public delegate void OnClickEventHandler(Vector3 pos);
@@ -32,12 +35,18 @@ public class InputManager : MonoBehaviour {
             Destroy(this);
         }
 	}
-	
-	// Update is called once per frame
-	void Update () {
+
+    private void Start()
+    {
+        cam = Camera.main;
+    }
+
+    // Update is called once per frame
+    void Update () {
 		if(Input.GetMouseButtonDown(0))
         {
             initialMousePosition = Input.mousePosition;
+            lastMousePosition = initialMousePosition;
             finalMousePosition = initialMousePosition;
             dragTime = 0;
         }
@@ -61,12 +70,14 @@ public class InputManager : MonoBehaviour {
         {
             finalMousePosition = Input.mousePosition;
             dragTime += Time.deltaTime;
-            if (initialMousePosition != finalMousePosition)
+            if (lastMousePosition != finalMousePosition)
             {
                 dragLength = finalMousePosition - initialMousePosition;
                 Debug.Log("Dragging");
                 OnDragging();
             }
+
+            lastMousePosition = finalMousePosition;
         }
         
     }
@@ -74,14 +85,15 @@ public class InputManager : MonoBehaviour {
     protected virtual void OnClick()
     {
         if (ClickedEvent != null)
-            ClickedEvent(Camera.main.ScreenToWorldPoint(clickPos));
+            ClickedEvent(cam.ScreenToWorldPoint(new Vector3(clickPos.x, clickPos.y, cam.nearClipPlane)));
     }
 
     protected virtual void OnDragging()
     {
         if(DraggingEvent != null)
         {
-            DraggingEvent(Camera.main.ScreenToWorldPoint(dragLength));
+            DraggingEvent(dragLength);
+            //DraggingEvent(cam.ScreenToWorldPoint(new Vector3(dragLength.x, dragLength.y, cam.nearClipPlane)));
         }
     }
 
@@ -89,7 +101,7 @@ public class InputManager : MonoBehaviour {
     {
         if(DragEndEvent != null)
         {
-            DragEndEvent(Camera.main.ScreenToWorldPoint(dragLength) / dragTime);
+            DragEndEvent(dragLength / dragTime);
         }
     }
 }

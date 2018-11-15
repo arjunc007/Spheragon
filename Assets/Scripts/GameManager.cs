@@ -10,6 +10,8 @@ public enum Shape
 
 public class GameManager : MonoBehaviour {
 
+    public Transform sphere;
+    public float dragSpeed = 5;
     //TileGeneration
     public static float TileRadius = 0.8f;
 
@@ -26,10 +28,11 @@ public class GameManager : MonoBehaviour {
         InputManager.instance.ClickedEvent += OnClick;
         InputManager.instance.DraggingEvent += OnDrag;
         InputManager.instance.DragEndEvent += OnDragEnd;
-	}
+    }
 	
 	// Update is called once per frame
 	void Update () {
+        Debug.DrawRay(Vector3.zero, sphere.forward * 10f, Color.blue);
         //if (Input.GetMouseButtonDown(0))
         //{
         //    initialMousePosition = Input.mousePosition;
@@ -77,26 +80,19 @@ public class GameManager : MonoBehaviour {
 
     public void OnDrag(Vector3 diff)
     {
-        Debug.LogFormat("Dragging: {0}", diff);
+        Vector3 axis = Vector3.Cross(diff, Vector3.forward).normalized;
+
+        //Debug.LogFormat("Dragging in direction {0}", diff);
+        //Debug.DrawRay(Vector3.zero, diff.normalized * 10f, Color.red, 10);
+        //Debug.DrawRay(Vector3.zero, axis * 10f, Color.green, 10);
+        //Debug.Log(axis);
+
+        sphere.Rotate(axis * dragSpeed, Space.World);
     }
 
     public void OnDragEnd(Vector3 speed)
     {
         Debug.LogFormat("Ended drag with speed {0}", speed.magnitude);
-    }
-
-    private void MoveCamera(Vector3 direction)
-    {
-        //Remove hardcoding
-        cameraSpeed = Mathf.Min(direction.magnitude, 20);
-        Vector3 temp = Camera.main.transform.position;
-        //Debug.Log ();
-        temp += Camera.main.ScreenToViewportPoint(-direction) * cameraSpeed * Time.deltaTime;
-
-        //temp.x = temp.x > edgeDistance.z ? edgeDistance.z : temp.x < edgeDistance.x ? edgeDistance.x : temp.x;
-        //temp.y = temp.y > edgeDistance.y ? edgeDistance.y : temp.y < edgeDistance.w ? edgeDistance.w : temp.y;
-
-        Camera.main.transform.position = temp;
     }
 
     private void ZoomCamera(float zoom)
