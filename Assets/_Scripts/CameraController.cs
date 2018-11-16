@@ -9,13 +9,8 @@ public class CameraController : MonoBehaviour {
 	public float minZoom = -15.0f;
 	private float zoomTo;
 
-    private void Start()
-    {
-    }
-
     void Update() {
         //Get axis from inputManager
-        //transform.RotateAround(target.transform.position, new Vector3(0, 1, 0), 0.5f);
 		if (Input.GetButton ("Vertical")) {
 			if (Input.GetKey (KeyCode.UpArrow)) {
 				zoomTo = transform.position.z + zoomSpeed;

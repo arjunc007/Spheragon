@@ -15,30 +15,26 @@ public class GameManager : MonoBehaviour {
     //TileGeneration
     public static float TileRadius = 0.8f;
 
-    //Camera
-    private float cameraSpeed = 5.0f;
-
     //Input Controls
     private Vector3 initialMousePosition;
     private Vector3 finalMousePosition;
     public bool dragging = false;
+
+    //Game Variables
+    private int playerTurn = 1;
 
     // Use this for initialization
     void Start () {
         InputManager.instance.ClickedEvent += OnClick;
         InputManager.instance.DraggingEvent += OnDrag;
         InputManager.instance.DragEndEvent += OnDragEnd;
+        
+        Color P1Color = Color.red;
+        Color P2Color = Color.blue;
     }
 	
 	// Update is called once per frame
 	void Update () {
-        Debug.DrawRay(Vector3.zero, sphere.forward * 10f, Color.blue);
-        //if (Input.GetMouseButtonDown(0))
-        //{
-        //    initialMousePosition = Input.mousePosition;
-        //    return;
-        //}
-
         //if (Input.GetMouseButtonUp(0))
         //{
         //    finalMousePosition = Input.mousePosition;
@@ -59,12 +55,6 @@ public class GameManager : MonoBehaviour {
         //        //}
         //        return;
         //    }
-        //}
-        //else
-        //{
-        //    //Do camera things
-        //    MoveCamera(finalMousePosition - initialMousePosition);
-        //}
 
         ////Implementing Zooming in and out
         //if (Input.mouseScrollDelta.y != 0)
@@ -73,19 +63,48 @@ public class GameManager : MonoBehaviour {
         //}
     }
 
+    private Tile GetClickedTile(Vector3 mousePosition)
+    {
+        Ray ray = Camera.main.ScreenPointToRay(mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit))
+        {
+            return hit.collider.GetComponent<Tile>();
+        }
+
+        return null;
+    }
+
     public void OnClick(Vector3 pos)
     {
         Debug.LogFormat("Clicked at {0}", pos);
+        //Do click actions
+        Tile clickedTile = GetClickedTile(Input.mousePosition);
+        Debug.Log(clickedTile);
+        
+        if (clickedTile != null && clickedTile.IsFree())
+        {
+            Color color;
+            if (playerTurn == 1)
+            {
+                color = Color.red;
+                //        uiManager.SetTurnText(playerTurn);
+            }
+            else
+                color = Color.blue;
+
+            clickedTile.ChangeColor(color);
+            clickedTile.SetOwner(playerTurn);
+            //    gridManager.freeTiles.Remove(clickedTile);
+            playerTurn = ++playerTurn > 2 ? 1 : playerTurn;
+        }
     }
 
+    //Rotate sphere in world space on drag
     public void OnDrag(Vector3 diff)
     {
         Vector3 axis = Vector3.Cross(diff, Vector3.forward).normalized;
-
-        //Debug.LogFormat("Dragging in direction {0}", diff);
-        //Debug.DrawRay(Vector3.zero, diff.normalized * 10f, Color.red, 10);
-        //Debug.DrawRay(Vector3.zero, axis * 10f, Color.green, 10);
-        //Debug.Log(axis);
 
         sphere.Rotate(axis * dragSpeed, Space.World);
     }
