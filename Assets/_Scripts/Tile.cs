@@ -10,7 +10,7 @@ public class Tile : MonoBehaviour
 
     public List<Tile> neighbours = new List<Tile>();
 
-    private int owner = 0;
+    private int owner = -1;
     private bool isChanging = false;
     private Material material;
     private Color color, targetColor;
@@ -50,44 +50,39 @@ public class Tile : MonoBehaviour
         }
     }
 
-    public void ChangeColor(Color target)
+    public void ChangeTo(int id, Color color, bool changeNeighbor = true)
+    {
+        owner = id;
+        StartCoroutine(ChangeColor(color));
+
+        if(changeNeighbor)
+            StartCoroutine(ChangeNeighbors(color));
+    }
+
+    private IEnumerator ChangeColor(Color target)
     {
         color = material.color;
         targetColor = target;
         startTime = Time.time;
 
-        StartCoroutine(ChangeColor());
-        //owner = player;
-        //StartCoroutine(ChangeNeighbors());
-    }
-
-    private IEnumerator ChangeColor()
-    {
         isChanging = true;
         yield return new WaitForSeconds(transitionTime);
         isChanging = false;
     }
 
-    IEnumerator ChangeNeighbors()
+    IEnumerator ChangeNeighbors(Color color)
     {
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(transitionTime);
 
-        //foreach (Tile neighbor in neighbours)
-        //{
-        //    if (neighbor.owner == 0 || neighbor.owner == owner)
-        //        continue;
-        //    else if (neighbor.owner == 1)
-        //    {
-        //        neighbor.anim.SetTrigger("BlueToRed");
-        //        neighbor.owner = 2;
-        //    }
-        //    else if (neighbor.owner == 2)
-        //    {
-        //        neighbor.anim.SetTrigger("RedToBlue");
-        //        neighbor.owner = 1;
-        //    }
-
-        //}
+        foreach (Tile neighbor in neighbours)
+        {
+            if (neighbor.IsFree() || neighbor.owner == owner)
+                continue;
+            else
+            {
+                neighbor.ChangeTo(owner, color, false);
+            }
+        }
     }
 
     public int GetBlueNeighbors()
@@ -108,6 +103,6 @@ public class Tile : MonoBehaviour
 
     public bool IsFree()
     {
-        return owner == 0;
+        return owner == -1;
     }
 }

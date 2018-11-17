@@ -10,6 +10,21 @@ public enum Shape
 
 public class GameManager : MonoBehaviour {
 
+    class Player
+    {
+        Color color;
+
+        public Player(Color c)
+        {
+            color = c;
+        }
+
+        public Color GetColor()
+        {
+            return color;
+        }
+    }
+
     public Transform sphere;
     public float dragSpeed = 5;
     //TileGeneration
@@ -21,16 +36,24 @@ public class GameManager : MonoBehaviour {
     public bool dragging = false;
 
     //Game Variables
-    private int playerTurn = 1;
+    private int playerTurn = 0;
+    private List<Player> players = new List<Player>();
+    List<Tile> freeTiles = new List<Tile>();
 
     // Use this for initialization
     void Start () {
         InputManager.instance.ClickedEvent += OnClick;
         InputManager.instance.DraggingEvent += OnDrag;
         InputManager.instance.DragEndEvent += OnDragEnd;
-        
-        Color P1Color = Color.red;
-        Color P2Color = Color.blue;
+
+        players.Add(new Player(Color.red));
+        players.Add(new Player(Color.blue));
+
+        Tile[] tiles = FindObjectsOfType<Tile>();
+        foreach (Tile tile in tiles)
+        {
+            freeTiles.Add(tile);
+        }
     }
 	
 	// Update is called once per frame
@@ -85,19 +108,14 @@ public class GameManager : MonoBehaviour {
         
         if (clickedTile != null && clickedTile.IsFree())
         {
-            Color color;
-            if (playerTurn == 1)
-            {
-                color = Color.red;
-                //        uiManager.SetTurnText(playerTurn);
-            }
-            else
-                color = Color.blue;
+            clickedTile.ChangeTo(playerTurn, players[playerTurn].GetColor());
+            freeTiles.Remove(clickedTile);
+            playerTurn = ++playerTurn > players.Count - 1 ? 0 : playerTurn;
+        }
 
-            clickedTile.ChangeColor(color);
-            clickedTile.SetOwner(playerTurn);
-            //    gridManager.freeTiles.Remove(clickedTile);
-            playerTurn = ++playerTurn > 2 ? 1 : playerTurn;
+        if(freeTiles.Count < 1)
+        {
+            Debug.Log("Game Over");
         }
     }
 
