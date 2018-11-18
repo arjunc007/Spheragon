@@ -28,7 +28,7 @@ public class InputManager : MonoBehaviour {
         if(instance == null)
         {
             instance = this;
-            DontDestroyOnLoad(this);
+            //DontDestroyOnLoad(this);
         }
         else if (instance != this)
         {
@@ -43,43 +43,46 @@ public class InputManager : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-		if(Input.GetMouseButtonDown(0))
-        {
-            initialMousePosition = Input.mousePosition;
-            lastMousePosition = initialMousePosition;
-            finalMousePosition = initialMousePosition;
-            dragTime = 0;
-        }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            finalMousePosition = Input.mousePosition;
-            if (initialMousePosition == finalMousePosition)
-            {
-                Debug.Log("Clicked");
-                clickPos = finalMousePosition;
-                OnClick();
-            }
-            else
-            {
-                Debug.Log("Drag ended");
-                dragLength = finalMousePosition - initialMousePosition;
-                OnDragEnd();
-            }
-        }
-        else if(Input.GetMouseButton(0))
-        {
-            finalMousePosition = Input.mousePosition;
-            dragTime += Time.deltaTime;
-            if (lastMousePosition != finalMousePosition)
-            {
-                dragLength = finalMousePosition - initialMousePosition;
-                Debug.Log("Dragging");
-                OnDragging();
-            }
 
-            lastMousePosition = finalMousePosition;
+        if (!GameManager.isPaused)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                initialMousePosition = Input.mousePosition;
+                lastMousePosition = initialMousePosition;
+                finalMousePosition = initialMousePosition;
+                dragTime = 0;
+            }
+            else if (Input.GetMouseButtonUp(0))
+            {
+                finalMousePosition = Input.mousePosition;
+                if (initialMousePosition == finalMousePosition)
+                {
+                    Debug.Log("Clicked");
+                    clickPos = finalMousePosition;
+                    OnClick();
+                }
+                else
+                {
+                    Debug.Log("Drag ended");
+                    dragLength = finalMousePosition - initialMousePosition;
+                    OnDragEnd();
+                }
+            }
+            else if (Input.GetMouseButton(0))
+            {
+                finalMousePosition = Input.mousePosition;
+                dragTime += Time.deltaTime;
+                if (lastMousePosition != finalMousePosition)
+                {
+                    dragLength = finalMousePosition - initialMousePosition;
+                    Debug.Log("Dragging");
+                    OnDragging();
+                }
+
+                lastMousePosition = finalMousePosition;
+            }
         }
-        
     }
 
     protected virtual void OnClick()
