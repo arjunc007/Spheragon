@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public enum Shape
 {
@@ -10,25 +11,13 @@ public enum Shape
 
 public class GameManager : MonoBehaviour {
 
-    class Player
-    {
-        Color color;
-
-        public Player(Color c)
-        {
-            color = c;
-        }
-
-        public Color GetColor()
-        {
-            return color;
-        }
-    }
-
     public Transform sphere;
     public float dragSpeed = 5;             //Spped of dragging action
     public static float TileRadius = 0.8f;  //Find neighbours in Tile
+
+    //UI
     public GameObject pauseMenu;
+    public Text[] scoreText;
 
     //Input Controls
     private Vector3 initialMousePosition;
@@ -38,7 +27,8 @@ public class GameManager : MonoBehaviour {
     private int playerTurn = 0;
     private List<Player> players = new List<Player>();
     private List<Tile> freeTiles = new List<Tile>();
-
+    private int changeNeighbourCount = 0;
+    
     //Game States
     [HideInInspector]
     public static bool isPaused;
@@ -49,8 +39,8 @@ public class GameManager : MonoBehaviour {
         InputManager.instance.DraggingEvent += OnDrag;
         InputManager.instance.DragEndEvent += OnDragEnd;
 
-        players.Add(new Player(Color.red));
-        players.Add(new Player(Color.blue));
+        players.Add(new Player(0, Color.red));
+        players.Add(new Player(1, Color.blue));
 
         Tile[] tiles = FindObjectsOfType<Tile>();
         foreach (Tile tile in tiles)
@@ -59,6 +49,12 @@ public class GameManager : MonoBehaviour {
         }
 
         isPaused = false;
+
+        //Update Score
+        for (int i = 0; i < players.Count; i++)
+        {
+            scoreText[i].color = players[i].GetColor();
+        }
     }
 	
 	// Update is called once per frame
@@ -109,9 +105,12 @@ public class GameManager : MonoBehaviour {
 
             if (clickedTile != null && clickedTile.IsFree())
             {
-                clickedTile.ChangeTo(playerTurn, players[playerTurn].GetColor());
+                clickedTile.ChangeTo(players[playerTurn]);// playerTurn, players[playerTurn].GetColor());
+                players[playerTurn].AddTile(clickedTile);
+                //Free tiles are assigned for first time, so don't need to remove from other player lists
                 freeTiles.Remove(clickedTile);
-                playerTurn = ++playerTurn > players.Count - 1 ? 0 : playerTurn;
+
+                StartCoroutine(ChangeNeighbours(clickedTile, players[playerTurn].Depth()));
             }
 
             if (freeTiles.Count < 1)
@@ -119,6 +118,57 @@ public class GameManager : MonoBehaviour {
                 Debug.Log("Game Over");
             }
         }
+    }
+
+    private IEnumerator ChangeNeighbours(Tile tile, int depth)
+    {
+        changeNeighbourCount++;
+
+        //Update Score
+        for (int i = 0; i < players.Count; i++)
+        {
+            scoreText[i].text = players[i].GetScore().ToString();
+        }
+
+        yield return new WaitForSeconds(Tile.transitionTime);
+
+        foreach (Tile neighbour in tile.neighbours)
+        {
+            if (neighbour.IsFree() || neighbour.CheckOwner(playerTurn))
+                continue;
+            else
+            {
+                //Neighbor is occupied
+                neighbour.ChangeTo(players[playerTurn]);
+                players[playerTurn].AddTile(tile);
+                //Remove from everyone else
+                foreach (var player in players)
+                {
+                    if (player.GetID() != playerTurn)
+                        player.RemoveTile(neighbour);
+                }
+
+                //Do for all neighbors of changed tile
+                if (--depth > 0)
+                {
+                    StartCoroutine(ChangeNeighbours(neighbour, depth));
+                }
+                else
+                {
+                    //Update Score
+                    for (int i = 0; i < players.Count; i++)
+                    {
+                        scoreText[i].text = players[i].GetScore().ToString();
+                    }
+                }
+            }
+        }
+
+        changeNeighbourCount--;
+        
+        //Increment player turn counter
+        if(changeNeighbourCount == 0)
+            playerTurn = ++playerTurn > players.Count - 1 ? 0 : playerTurn;
     }
 
     //Rotate sphere in world space on drag

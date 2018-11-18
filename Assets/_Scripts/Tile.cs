@@ -5,7 +5,7 @@ using UnityEngine;
 public class Tile : MonoBehaviour
 {
     public Material startMat;
-    public float transitionTime = 0.5f;
+    public static float transitionTime = 0.5f;
     public Shape shape;
 
     public List<Tile> neighbours = new List<Tile>();
@@ -50,13 +50,10 @@ public class Tile : MonoBehaviour
         }
     }
 
-    public void ChangeTo(int id, Color color, bool changeNeighbor = true)
+    public void ChangeTo(Player player)
     {
-        owner = id;
-        StartCoroutine(ChangeColor(color));
-
-        if(changeNeighbor)
-            StartCoroutine(ChangeNeighbors(color));
+        owner = player.GetID();
+        StartCoroutine(ChangeColor(player.GetColor()));
     }
 
     private IEnumerator ChangeColor(Color target)
@@ -70,35 +67,14 @@ public class Tile : MonoBehaviour
         isChanging = false;
     }
 
-    IEnumerator ChangeNeighbors(Color color)
-    {
-        yield return new WaitForSeconds(transitionTime);
-
-        foreach (Tile neighbor in neighbours)
-        {
-            if (neighbor.IsFree() || neighbor.owner == owner)
-                continue;
-            else
-            {
-                neighbor.ChangeTo(owner, color, false);
-            }
-        }
-    }
-
-    public int GetBlueNeighbors()
-    {
-        int count = 0;
-        foreach (Tile neighbor in neighbours)
-        {
-            if (neighbor.owner == 1)
-                count++;
-        }
-        return count;
-    }
-
     public void SetOwner(int i)
     {
         owner = i;
+    }
+
+    public bool CheckOwner(int i)
+    {
+        return owner == i;
     }
 
     public bool IsFree()
