@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public enum Shape
 {
@@ -18,6 +19,7 @@ public class GameManager : MonoBehaviour {
     //UI
     public GameObject pauseMenu;
     public Text[] scoreText;
+    public TextMeshProUGUI scoreSeparator;
 
     //Input Controls
     private Vector3 initialMousePosition;
@@ -32,6 +34,7 @@ public class GameManager : MonoBehaviour {
     //Game States
     [HideInInspector]
     public static bool isPaused;
+    private bool pauseClicks;
 
     // Use this for initialization
     void Start () {
@@ -39,8 +42,11 @@ public class GameManager : MonoBehaviour {
         InputManager.instance.DraggingEvent += OnDrag;
         InputManager.instance.DragEndEvent += OnDragEnd;
 
-        players.Add(new Player(0, Color.red));
-        players.Add(new Player(1, Color.blue));
+        Color p1Color = Color.red;
+        Color p2Color = Color.blue;
+
+        players.Add(new Player(0, p1Color));
+        players.Add(new Player(1, p2Color));
 
         Tile[] tiles = FindObjectsOfType<Tile>();
         foreach (Tile tile in tiles)
@@ -49,8 +55,10 @@ public class GameManager : MonoBehaviour {
         }
 
         isPaused = false;
+        pauseClicks = false;
 
-        //Update Score
+        //Update Score colors
+        scoreSeparator.colorGradient = scoreSeparator.colorGradient = new VertexGradient(p1Color, p2Color, p1Color, p2Color);
         for (int i = 0; i < players.Count; i++)
         {
             scoreText[i].color = players[i].GetColor();
@@ -70,6 +78,7 @@ public class GameManager : MonoBehaviour {
     public void PauseGame()
     {
         isPaused = !isPaused;
+        pauseClicks = !pauseClicks;
 
         if(isPaused)
         {
@@ -96,7 +105,7 @@ public class GameManager : MonoBehaviour {
 
     public void OnClick(Vector3 pos)
     {
-        if (!isPaused)
+        if (!pauseClicks)
         {
             Debug.LogFormat("Clicked at {0}", pos);
             //Do click actions
@@ -105,6 +114,7 @@ public class GameManager : MonoBehaviour {
 
             if (clickedTile != null && clickedTile.IsFree())
             {
+                pauseClicks = true;
                 clickedTile.ChangeTo(players[playerTurn]);// playerTurn, players[playerTurn].GetColor());
                 players[playerTurn].AddTile(clickedTile);
                 //Free tiles are assigned for first time, so don't need to remove from other player lists
@@ -115,9 +125,17 @@ public class GameManager : MonoBehaviour {
 
             if (freeTiles.Count < 1)
             {
-                Debug.Log("Game Over");
+                EndGame();
             }
         }
+    }
+
+    private void EndGame()
+    {
+        //Show final score
+        //Restart
+        //Home
+        //
     }
 
     private IEnumerator ChangeNeighbours(Tile tile, int depth)
@@ -138,9 +156,10 @@ public class GameManager : MonoBehaviour {
                 continue;
             else
             {
-                //Neighbor is occupied
+                //Neighbor is occupied by other player
                 neighbour.ChangeTo(players[playerTurn]);
                 players[playerTurn].AddTile(tile);
+
                 //Remove from everyone else
                 foreach (var player in players)
                 {
@@ -165,10 +184,13 @@ public class GameManager : MonoBehaviour {
         }
 
         changeNeighbourCount--;
-        
+
         //Increment player turn counter
-        if(changeNeighbourCount == 0)
+        if (changeNeighbourCount == 0)
+        {
+            pauseClicks = false;
             playerTurn = ++playerTurn > players.Count - 1 ? 0 : playerTurn;
+        }
     }
 
     //Rotate sphere in world space on drag
