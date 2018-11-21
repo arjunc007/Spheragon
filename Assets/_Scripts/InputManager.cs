@@ -58,13 +58,13 @@ public class InputManager : MonoBehaviour {
                 finalMousePosition = Input.mousePosition;
                 if (initialMousePosition == finalMousePosition)
                 {
-                    Debug.Log("Clicked");
+                    //Debug.Log("Clicked");
                     clickPos = finalMousePosition;
                     OnClick();
                 }
                 else
                 {
-                    Debug.Log("Drag ended");
+                    //Debug.Log("Drag ended");
                     dragLength = finalMousePosition - initialMousePosition;
                     OnDragEnd();
                 }
@@ -76,7 +76,7 @@ public class InputManager : MonoBehaviour {
                 if (lastMousePosition != finalMousePosition)
                 {
                     dragLength = finalMousePosition - initialMousePosition;
-                    Debug.Log("Dragging");
+                    //Debug.Log("Dragging");
                     OnDragging();
                 }
 

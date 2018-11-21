@@ -7,13 +7,15 @@ public class Player
 {
     private int id = 0;
     private Color color;
-    private List<Tile> ownedTiles = new List<Tile>();
+    private HashSet<Tile> ownedTiles = new HashSet<Tile>();
     private int depth = 1;
+    private bool isAI = false;
 
-    public Player(int id, Color c)
+    public Player(int id, Color c, bool ai = false)
     {
         this.id = id;
         color = c;
+        isAI = ai;
     }
 
     public Color GetColor()
@@ -54,5 +56,10 @@ public class Player
     public void SetDepth(int i)
     {
         depth = i;
+    }
+
+    public bool IsAI()
+    {
+        return isAI;
     }
 }

@@ -67,6 +67,18 @@ public class Tile : MonoBehaviour
         isChanging = false;
     }
 
+    public int GetDiffNeighbours(int playerID)
+    {
+        int opponentTiles = 0;
+        foreach(Tile neighbour in neighbours)
+        {
+            if (!neighbour.IsFree() && neighbour.owner != playerID)
+                opponentTiles++;
+        }
+
+        return opponentTiles;
+    }
+
     public void SetOwner(int i)
     {
         owner = i;

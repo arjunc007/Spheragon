@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour {
     public Transform sphere;
     public float dragSpeed = 5;             //Spped of dragging action
     public static float TileRadius = 0.8f;  //Find neighbours in Tile
+    public float computerWaitTime = 0.5f;
 
     //UI
     public GameObject pauseMenu;
@@ -26,9 +27,10 @@ public class GameManager : MonoBehaviour {
     private Vector3 finalMousePosition;
 
     //Game Logic
+    public float difficulty = 0.2f;
     private int playerTurn = 0;
     private List<Player> players = new List<Player>();
-    private List<Tile> freeTiles = new List<Tile>();
+    private HashSet<Tile> freeTiles = new HashSet<Tile>();
     private int changeNeighbourCount = 0;
     
     //Game States
@@ -45,8 +47,8 @@ public class GameManager : MonoBehaviour {
         Color p1Color = Color.red;
         Color p2Color = Color.blue;
 
-        players.Add(new Player(0, p1Color));
-        players.Add(new Player(1, p2Color));
+        players.Add(new Player(0, p1Color, true));
+        players.Add(new Player(1, p2Color, true));
 
         Tile[] tiles = FindObjectsOfType<Tile>();
         foreach (Tile tile in tiles)
@@ -62,6 +64,12 @@ public class GameManager : MonoBehaviour {
         for (int i = 0; i < players.Count; i++)
         {
             scoreText[i].color = players[i].GetColor();
+        }
+
+        //Make the first move, if player if AI
+        if(players[playerTurn].IsAI())
+        {
+            StartCoroutine(playTile());
         }
     }
 	
@@ -107,26 +115,29 @@ public class GameManager : MonoBehaviour {
     {
         if (!pauseClicks)
         {
-            Debug.LogFormat("Clicked at {0}", pos);
             //Do click actions
             Tile clickedTile = GetClickedTile(Input.mousePosition);
-            Debug.Log(clickedTile);
-
-            if (clickedTile != null && clickedTile.IsFree())
-            {
-                pauseClicks = true;
-                clickedTile.ChangeTo(players[playerTurn]);// playerTurn, players[playerTurn].GetColor());
-                players[playerTurn].AddTile(clickedTile);
-                //Free tiles are assigned for first time, so don't need to remove from other player lists
-                freeTiles.Remove(clickedTile);
-
-                StartCoroutine(ChangeNeighbours(clickedTile, players[playerTurn].Depth()));
-            }
+            //Debug.Log(clickedTile);
+            MakeMove(clickedTile);
 
             if (freeTiles.Count < 1)
             {
                 EndGame();
             }
+        }
+    }
+
+    private void MakeMove(Tile clickedTile)
+    {
+        if (clickedTile != null && clickedTile.IsFree())
+        {
+            pauseClicks = true;
+            clickedTile.ChangeTo(players[playerTurn]);
+            players[playerTurn].AddTile(clickedTile);
+            //Free tiles are assigned for first time, so don't need to remove from other player lists
+            freeTiles.Remove(clickedTile);
+
+            StartCoroutine(ChangeNeighbours(clickedTile, players[playerTurn].Depth()));
         }
     }
 
@@ -152,13 +163,15 @@ public class GameManager : MonoBehaviour {
 
         foreach (Tile neighbour in tile.neighbours)
         {
+            //Check if neighbour is empty or owned
             if (neighbour.IsFree() || neighbour.CheckOwner(playerTurn))
                 continue;
             else
             {
                 //Neighbor is occupied by other player
                 neighbour.ChangeTo(players[playerTurn]);
-                players[playerTurn].AddTile(tile);
+
+                players[playerTurn].AddTile(neighbour);
 
                 //Remove from everyone else
                 foreach (var player in players)
@@ -185,11 +198,17 @@ public class GameManager : MonoBehaviour {
 
         changeNeighbourCount--;
 
-        //Increment player turn counter
+        //Increment player turn counter because turn has ended and all neighbours visited
         if (changeNeighbourCount == 0)
         {
             pauseClicks = false;
             playerTurn = ++playerTurn > players.Count - 1 ? 0 : playerTurn;
+
+            //For next move, check again, if player if AI
+            if (players[playerTurn].IsAI())
+            {
+                StartCoroutine(playTile());
+            }
         }
     }
 
@@ -206,7 +225,7 @@ public class GameManager : MonoBehaviour {
 
     public void OnDragEnd(Vector3 speed)
     {
-        Debug.LogFormat("Ended drag with speed {0}", speed.magnitude);
+        //Debug.LogFormat("Ended drag with speed {0}", speed.magnitude);
     }
 
     private void ZoomCamera(float zoom)
@@ -218,5 +237,36 @@ public class GameManager : MonoBehaviour {
         temp = temp > 8.2f ? 8.2f : temp < 5f ? 5f : temp;
 
         Camera.main.orthographicSize = temp;
+    }
+
+    private IEnumerator playTile()
+    {
+        List<Tile> playableTiles = new List<Tile>(freeTiles);
+
+        Tile tileToPlay = playableTiles[0];
+
+        //Get tile with max blue neighbors
+        playableTiles.Sort((a, b) => a.GetDiffNeighbours(playerTurn).CompareTo(b.GetDiffNeighbours(playerTurn)));
+        foreach (Tile tile in playableTiles)
+        {
+            if (tile.GetDiffNeighbours(playerTurn) > tileToPlay.GetDiffNeighbours(playerTurn))
+                tileToPlay = tile;
+        }
+
+        //Remove this one from possibilities
+        playableTiles.Remove(tileToPlay);
+
+        //Either select the best choice, or pick a random tile from the rest
+        float predictor = Random.Range(0.0f, 1.0f);
+        if (playableTiles.Count > 1 && predictor > difficulty)
+        {
+            tileToPlay = playableTiles[Random.Range(0, playableTiles.Count)];
+        }
+        yield return new WaitForSeconds(computerWaitTime);
+
+        //Get the tile by some logic above, and then call this function
+        MakeMove(tileToPlay);
+        
+        //uiManager.SetTurnText(playerTurn);
     }
 }
