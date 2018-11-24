@@ -4,12 +4,14 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
+    public bool printNormal = false;
     public Material startMat;
-    public static float transitionTime = 0.5f;
+    public static float transitionTime = 0.2f;
     public Shape shape;
 
     public List<Tile> neighbours = new List<Tile>();
 
+    private Vector3 normal;
     private int owner = -1;
     private bool isChanging = false;
     private Material material;
@@ -28,6 +30,8 @@ public class Tile : MonoBehaviour
             shape = Shape.Hexagon;
         else
             shape = Shape.Pentagon;
+
+        normal = GetComponent<MeshFilter>().mesh.normals[0];
     }
 
     public void Update()
@@ -37,6 +41,9 @@ public class Tile : MonoBehaviour
             float t = (Time.time - startTime) / transitionTime;
             material.color = Color.Lerp(color, targetColor, t);
         }
+
+        if (printNormal)
+            Debug.Log(GetNormal());
     }
 
     private void FindNeighbours()
@@ -77,6 +84,11 @@ public class Tile : MonoBehaviour
         }
 
         return opponentTiles;
+    }
+
+    public Vector3 GetNormal()
+    {
+        return transform.rotation * normal;
     }
 
     public void SetOwner(int i)

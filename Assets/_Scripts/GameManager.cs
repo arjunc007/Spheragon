@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour {
     public float dragSpeed = 5;             //Spped of dragging action
     public static float TileRadius = 0.8f;  //Find neighbours in Tile
     public float computerWaitTime = 0.5f;
+    public float rotSpeed = 5;
 
     //UI
     public GameObject pauseMenu;
@@ -32,6 +33,7 @@ public class GameManager : MonoBehaviour {
     private List<Player> players = new List<Player>();
     private HashSet<Tile> freeTiles = new HashSet<Tile>();
     private int changeNeighbourCount = 0;
+    private Quaternion startRot, endRot;
     
     //Game States
     [HideInInspector]
@@ -71,6 +73,8 @@ public class GameManager : MonoBehaviour {
         {
             StartCoroutine(playTile());
         }
+
+        startRot = endRot = transform.rotation;
     }
 	
 	// Update is called once per frame
@@ -241,6 +245,10 @@ public class GameManager : MonoBehaviour {
 
     private IEnumerator playTile()
     {
+
+        if (freeTiles.Count == 0)
+            yield break;
+
         List<Tile> playableTiles = new List<Tile>(freeTiles);
 
         Tile tileToPlay = playableTiles[0];
@@ -262,11 +270,26 @@ public class GameManager : MonoBehaviour {
         {
             tileToPlay = playableTiles[Random.Range(0, playableTiles.Count)];
         }
-        yield return new WaitForSeconds(computerWaitTime);
+
+        //yield return new WaitForSeconds(computerWaitTime);
+
+        //Check if tile in view, then rotate if not.
+        yield return StartCoroutine(BringTileToFront(tileToPlay));
 
         //Get the tile by some logic above, and then call this function
         MakeMove(tileToPlay);
         
         //uiManager.SetTurnText(playerTurn);
+    }
+
+    IEnumerator BringTileToFront(Tile t)
+    {
+        while (Vector3.Angle(t.GetNormal(), Vector3.back) > 20)
+        {
+            float step = rotSpeed * Time.deltaTime;
+            sphere.Rotate(Vector3.Cross(t.GetNormal(), Vector3.back), step, Space.World);
+
+            yield return null;
+        }
     }
 }
