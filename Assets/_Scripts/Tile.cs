@@ -6,7 +6,7 @@ public class Tile : MonoBehaviour
 {
     public bool printNormal = false;
     public Material startMat;
-    public static float transitionTime = 0.2f;
+    public static float transitionTime = 0.5f;
     public Shape shape;
 
     public List<Tile> neighbours = new List<Tile>();

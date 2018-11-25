@@ -16,8 +16,14 @@ public class MenuScript : MonoBehaviour {
 		
 	}
 
-    public void StartGame()
+    public void SelectMode()
     {
+
+    }
+
+    public void StartGame(bool singlePlayer)
+    {
+        GameData.isSP = singlePlayer;
         SceneManager.LoadScene(gameScene);
     }
 

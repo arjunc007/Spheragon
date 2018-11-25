@@ -49,8 +49,8 @@ public class GameManager : MonoBehaviour {
         Color p1Color = Color.red;
         Color p2Color = Color.blue;
 
-        players.Add(new Player(0, p1Color, true));
-        players.Add(new Player(1, p2Color, true));
+        players.Add(new Player(0, p1Color));
+        players.Add(new Player(1, p2Color, GameData.isSP));
 
         Tile[] tiles = FindObjectsOfType<Tile>();
         foreach (Tile tile in tiles)
