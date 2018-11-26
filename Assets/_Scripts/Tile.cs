@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    public bool printNormal = false;
     public Material startMat;
     public static float transitionTime = 0.5f;
     public Shape shape;
@@ -41,9 +40,6 @@ public class Tile : MonoBehaviour
             float t = (Time.time - startTime) / transitionTime;
             material.color = Color.Lerp(color, targetColor, t);
         }
-
-        if (printNormal)
-            Debug.Log(GetNormal());
     }
 
     private void FindNeighbours()
@@ -60,18 +56,25 @@ public class Tile : MonoBehaviour
     public void ChangeTo(Player player)
     {
         owner = player.GetID();
-        StartCoroutine(ChangeColor(player.GetColor()));
-    }
 
-    private IEnumerator ChangeColor(Color target)
-    {
         color = material.color;
-        targetColor = target;
+        targetColor = player.GetColor();
         startTime = Time.time;
 
-        isChanging = true;
-        yield return new WaitForSeconds(transitionTime);
-        isChanging = false;
+        StartCoroutine(ChangeColor());
+    }
+
+    private IEnumerator ChangeColor()
+    {
+        float t;
+
+        do
+        {
+            t = (Time.time - startTime) / transitionTime;
+            material.color = Color.Lerp(color, targetColor, t);
+            yield return null;
+        } while (t < 1);
+        
     }
 
     public int GetDiffNeighbours(int playerID)

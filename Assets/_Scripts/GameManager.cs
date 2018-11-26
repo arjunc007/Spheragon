@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour {
     public static float TileRadius = 0.8f;  //Find neighbours in Tile
     public float computerWaitTime = 0.5f;
     public float rotSpeed = 5;
+    public float perspectiveZoomSpeed = 5;
 
     //UI
     public GameObject pauseMenu;
@@ -33,7 +34,6 @@ public class GameManager : MonoBehaviour {
     private List<Player> players = new List<Player>();
     private HashSet<Tile> freeTiles = new HashSet<Tile>();
     private int changeNeighbourCount = 0;
-    private Quaternion startRot, endRot;
     
     //Game States
     [HideInInspector]
@@ -45,12 +45,15 @@ public class GameManager : MonoBehaviour {
         InputManager.instance.ClickedEvent += OnClick;
         InputManager.instance.DraggingEvent += OnDrag;
         InputManager.instance.DragEndEvent += OnDragEnd;
+        InputManager.instance.PinchEvent += OnPinch;
 
         Color p1Color = Color.red;
         Color p2Color = Color.blue;
 
-        players.Add(new Player(0, p1Color));
-        players.Add(new Player(1, p2Color, GameData.isSP));
+        bool randomiseP1 = Random.value > 0.5f;
+        
+        players.Add(new Player(0, p1Color, GameData.isSP && randomiseP1));
+        players.Add(new Player(1, p2Color, GameData.isSP && !randomiseP1));
 
         Tile[] tiles = FindObjectsOfType<Tile>();
         foreach (Tile tile in tiles)
@@ -73,18 +76,6 @@ public class GameManager : MonoBehaviour {
         {
             StartCoroutine(playTile());
         }
-
-        startRot = endRot = transform.rotation;
-    }
-	
-	// Update is called once per frame
-	void Update () {
-       
-        ////Implementing Zooming in and out
-        //if (Input.mouseScrollDelta.y != 0)
-        //{
-        //    ZoomCamera(Input.mouseScrollDelta.y);
-        //}
     }
 
     public void PauseGame()
@@ -232,15 +223,14 @@ public class GameManager : MonoBehaviour {
         //Debug.LogFormat("Ended drag with speed {0}", speed.magnitude);
     }
 
-    private void ZoomCamera(float zoom)
+    public void OnPinch(float diff)
     {
-        float temp = Camera.main.orthographicSize;
+        Camera camera = Camera.main;
+        //Change the field of view based on the change in distance between the touches.
+        camera.fieldOfView += diff * perspectiveZoomSpeed;
 
-        temp += zoom;
-        //Liable to change
-        temp = temp > 8.2f ? 8.2f : temp < 5f ? 5f : temp;
-
-        Camera.main.orthographicSize = temp;
+        // Clamp the field of view to make sure it's between 0 and 180.
+        camera.fieldOfView = Mathf.Clamp(camera.fieldOfView, 0.1f, 179.9f);
     }
 
     private IEnumerator playTile()
