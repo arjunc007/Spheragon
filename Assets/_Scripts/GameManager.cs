@@ -16,17 +16,15 @@ public class GameManager : MonoBehaviour {
     public float dragSpeed = 5;             //Spped of dragging action
     public static float TileRadius = 0.8f;  //Find neighbours in Tile
     public float computerWaitTime = 0.5f;
-    public float rotSpeed = 5;
+    public float aiRotSpeed = 5;
+    public float maxFoV, minFoV;
     public float perspectiveZoomSpeed = 5;
+    public float flickDamping = 0.7f;
 
     //UI
     public GameObject pauseMenu;
     public Text[] scoreText;
     public TextMeshProUGUI scoreSeparator;
-
-    //Input Controls
-    private Vector3 initialMousePosition;
-    private Vector3 finalMousePosition;
 
     //Game Logic
     public float difficulty = 0.2f;
@@ -34,7 +32,10 @@ public class GameManager : MonoBehaviour {
     private List<Player> players = new List<Player>();
     private HashSet<Tile> freeTiles = new HashSet<Tile>();
     private int changeNeighbourCount = 0;
-    
+    private float zoomedRotSpeed;
+    private float initialFoV;
+    private Vector3 flickSpeed;
+
     //Game States
     [HideInInspector]
     public static bool isPaused;
@@ -71,11 +72,14 @@ public class GameManager : MonoBehaviour {
             scoreText[i].color = players[i].GetColor();
         }
 
-        //Make the first move, if player if AI
+        //Make the first move, if player 1 if AI
         if(players[playerTurn].IsAI())
         {
-            StartCoroutine(playTile());
+            StartCoroutine(PlayTile());
         }
+
+        zoomedRotSpeed = dragSpeed;
+        initialFoV = Camera.main.fieldOfView;
     }
 
     public void PauseGame()
@@ -104,22 +108,6 @@ public class GameManager : MonoBehaviour {
         }
 
         return null;
-    }
-
-    public void OnClick(Vector3 pos)
-    {
-        if (!pauseClicks)
-        {
-            //Do click actions
-            Tile clickedTile = GetClickedTile(Input.mousePosition);
-            //Debug.Log(clickedTile);
-            MakeMove(clickedTile);
-
-            if (freeTiles.Count < 1)
-            {
-                EndGame();
-            }
-        }
     }
 
     private void MakeMove(Tile clickedTile)
@@ -202,7 +190,24 @@ public class GameManager : MonoBehaviour {
             //For next move, check again, if player if AI
             if (players[playerTurn].IsAI())
             {
-                StartCoroutine(playTile());
+                StartCoroutine(PlayTile());
+            }
+        }
+    }
+
+    public void OnClick(Vector3 pos)
+    {
+        flickSpeed = Vector3.zero;
+        if (!pauseClicks)
+        {
+            //Do click actions
+            Tile clickedTile = GetClickedTile(Input.mousePosition);
+            //Debug.Log(clickedTile);
+            MakeMove(clickedTile);
+
+            if (freeTiles.Count < 1)
+            {
+                EndGame();
             }
         }
     }
@@ -210,17 +215,20 @@ public class GameManager : MonoBehaviour {
     //Rotate sphere in world space on drag
     public void OnDrag(Vector3 diff)
     {
+        flickSpeed = Vector3.zero;
         if (!isPaused)
         {
             Vector3 axis = Vector3.Cross(diff, Vector3.forward).normalized;
 
-            sphere.Rotate(axis * dragSpeed, Space.World);
+            sphere.Rotate(axis * zoomedRotSpeed, Space.World);
         }
     }
 
     public void OnDragEnd(Vector3 speed)
     {
         //Debug.LogFormat("Ended drag with speed {0}", speed.magnitude);
+        flickSpeed = speed * dragSpeed;
+        StartCoroutine(KeepRotating());
     }
 
     public void OnPinch(float diff)
@@ -230,10 +238,22 @@ public class GameManager : MonoBehaviour {
         camera.fieldOfView += diff * perspectiveZoomSpeed;
 
         // Clamp the field of view to make sure it's between 0 and 180.
-        camera.fieldOfView = Mathf.Clamp(camera.fieldOfView, 0.1f, 179.9f);
+        camera.fieldOfView = Mathf.Clamp(camera.fieldOfView, minFoV, maxFoV);
+
+        zoomedRotSpeed = dragSpeed + dragSpeed * (initialFoV - camera.fieldOfView) / (maxFoV - minFoV);
     }
 
-    private IEnumerator playTile()
+    private IEnumerator KeepRotating()
+    {
+        while(flickSpeed.magnitude > 0)
+        {
+            sphere.Rotate(Vector3.Cross(flickSpeed, Vector3.back), Space.World);
+            flickSpeed *= flickDamping;
+            yield return null;
+        }
+    }
+
+    private IEnumerator PlayTile()
     {
 
         if (freeTiles.Count == 0)
@@ -276,7 +296,7 @@ public class GameManager : MonoBehaviour {
     {
         while (Vector3.Angle(t.GetNormal(), Vector3.back) > 20)
         {
-            float step = rotSpeed * Time.deltaTime;
+            float step = aiRotSpeed * Time.deltaTime;
             sphere.Rotate(Vector3.Cross(t.GetNormal(), Vector3.back), step, Space.World);
 
             yield return null;

@@ -12,7 +12,6 @@ public class Tile : MonoBehaviour
 
     private Vector3 normal;
     private int owner = -1;
-    private bool isChanging = false;
     private Material material;
     private Color color, targetColor;
     float startTime;
@@ -31,15 +30,6 @@ public class Tile : MonoBehaviour
             shape = Shape.Pentagon;
 
         normal = GetComponent<MeshFilter>().mesh.normals[0];
-    }
-
-    public void Update()
-    {
-        if (isChanging)
-        {
-            float t = (Time.time - startTime) / transitionTime;
-            material.color = Color.Lerp(color, targetColor, t);
-        }
     }
 
     private void FindNeighbours()

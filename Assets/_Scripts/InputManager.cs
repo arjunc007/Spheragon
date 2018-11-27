@@ -3,15 +3,13 @@
 public class InputManager : MonoBehaviour {
 
     public static InputManager instance = null;
-    private Vector3 clickPos;
-    private float dragTime = 0;
-    private Vector3 dragLength;
+    private Vector2 dragSpeed;
 
     private bool useTouch = false;
 
     private Vector3 initialMousePosition;
     private Vector3 lastMousePosition;
-    private Vector3 finalMousePosition;
+    private Vector3 currentMousePosition;
     private float pinchDiff;
 
     Camera cam;
@@ -66,31 +64,10 @@ public class InputManager : MonoBehaviour {
                             BeginInput(touch.position);
                             break;
                         case TouchPhase.Moved:
-                            finalMousePosition = touch.position;
-                            dragTime += Time.deltaTime;
-                            if (lastMousePosition != finalMousePosition)
-                            {
-                                dragLength = finalMousePosition - initialMousePosition;
-                                //Debug.Log("Dragging");
-                                OnDragging();
-                            }
-
-                            lastMousePosition = finalMousePosition;
+                            ContinueInput(touch.position);
                             break;
                         case TouchPhase.Ended:
-                            finalMousePosition = touch.position;
-                            if (initialMousePosition == finalMousePosition)
-                            {
-                                //Debug.Log("Clicked");
-                                clickPos = finalMousePosition;
-                                OnClick();
-                            }
-                            else
-                            {
-                                //Debug.Log("Drag ended");
-                                dragLength = finalMousePosition - initialMousePosition;
-                                OnDragEnd();
-                            }
+                            EndInput(touch.position);
                             break;
                     }
                 }
@@ -119,63 +96,71 @@ public class InputManager : MonoBehaviour {
             {
                 if (Input.GetMouseButtonDown(0))
                 {
-                    initialMousePosition = Input.mousePosition;
-                    lastMousePosition = initialMousePosition;
-                    finalMousePosition = initialMousePosition;
-                    dragTime = 0;
+                    BeginInput(Input.mousePosition);
                 }
                 else if (Input.GetMouseButtonUp(0))
                 {
-                    finalMousePosition = Input.mousePosition;
-                    if (initialMousePosition == finalMousePosition)
-                    {
-                        //Debug.Log("Clicked");
-                        clickPos = finalMousePosition;
-                        OnClick();
-                    }
-                    else
-                    {
-                        //Debug.Log("Drag ended");
-                        dragLength = finalMousePosition - initialMousePosition;
-                        OnDragEnd();
-                    }
+                    EndInput(Input.mousePosition);
                 }
                 else if (Input.GetMouseButton(0))
                 {
-                    finalMousePosition = Input.mousePosition;
-                    dragTime += Time.deltaTime;
-                    if (lastMousePosition != finalMousePosition)
-                    {
-                        dragLength = finalMousePosition - initialMousePosition;
-                        //Debug.Log("Dragging");
-                        OnDragging();
-                    }
-
-                    lastMousePosition = finalMousePosition;
+                    ContinueInput(Input.mousePosition);
+                }
+                else if(Input.mousePresent)
+                {
+                    pinchDiff = -Input.mouseScrollDelta.y;
+                    OnPinch();
                 }
             }   //Not using touch
         }   //Game Loop
     }
 
+    private void ContinueInput(Vector2 position)
+    {
+        currentMousePosition = Input.mousePosition;
+        if (lastMousePosition != currentMousePosition)
+        {
+            dragSpeed = currentMousePosition - lastMousePosition;
+            OnDragging();
+        }
+
+        lastMousePosition = currentMousePosition;
+    }
+
+    private void EndInput(Vector2 position)
+    {
+        currentMousePosition = position;
+        if (initialMousePosition == currentMousePosition)
+        {
+            //Debug.Log("Clicked");
+            OnClick();
+        }
+        else
+        {
+            //Debug.Log("Drag ended");
+            dragSpeed = (currentMousePosition - lastMousePosition) / Time.deltaTime;
+            OnDragEnd();
+        }
+    }
+
     private void BeginInput(Vector2 position)
     {
         initialMousePosition = position;
-        lastMousePosition = initialMousePosition;
-        finalMousePosition = initialMousePosition;
-        dragTime = 0;
+        lastMousePosition = position;
+        currentMousePosition = position;
     }
 
     protected virtual void OnClick()
     {
         if (ClickedEvent != null)
-            ClickedEvent(cam.ScreenToWorldPoint(new Vector3(clickPos.x, clickPos.y, cam.nearClipPlane)));
+            ClickedEvent(cam.ScreenToWorldPoint(new Vector3(currentMousePosition.x, currentMousePosition.y, cam.nearClipPlane)));
     }
 
     protected virtual void OnDragging()
     {
         if(DraggingEvent != null)
         {
-            DraggingEvent(dragLength);
+            DraggingEvent(dragSpeed);
             //DraggingEvent(cam.ScreenToWorldPoint(new Vector3(dragLength.x, dragLength.y, cam.nearClipPlane)));
         }
     }
@@ -184,7 +169,7 @@ public class InputManager : MonoBehaviour {
     {
         if(DragEndEvent != null)
         {
-            DragEndEvent(dragLength / dragTime);
+            DragEndEvent(dragSpeed);
         }
     }
 
