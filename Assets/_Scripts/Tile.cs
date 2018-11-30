@@ -5,6 +5,8 @@ using UnityEngine;
 public class Tile : MonoBehaviour
 {
     public Material startMat;
+    public AudioClip[] tapSounds;
+
     public static float transitionTime = 0.5f;
     public Shape shape;
 
@@ -45,6 +47,8 @@ public class Tile : MonoBehaviour
 
     public void ChangeTo(Player player)
     {
+        AudioSource.PlayClipAtPoint(tapSounds[Random.Range(0, tapSounds.Length)], transform.root.position);
+
         owner = player.GetID();
 
         material.SetColor("_ToColor", player.GetColor());

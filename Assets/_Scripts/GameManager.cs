@@ -227,8 +227,11 @@ public class GameManager : MonoBehaviour {
     public void OnDragEnd(Vector3 speed)
     {
         //Debug.LogFormat("Ended drag with speed {0}", speed.magnitude);
-        flickSpeed = speed * dragSpeed;
-        StartCoroutine(KeepRotating());
+        if (!pauseClicks)
+        {
+            flickSpeed = speed * dragSpeed;
+            StartCoroutine(KeepRotating());
+        }
     }
 
     public void OnPinch(float diff)
