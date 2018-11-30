@@ -47,8 +47,8 @@ public class Tile : MonoBehaviour
     {
         owner = player.GetID();
 
-        color = material.color;
-        targetColor = player.GetColor();
+        material.SetColor("_ToColor", player.GetColor());
+        //targetColor = player.GetColor();
         startTime = Time.time;
 
         StartCoroutine(ChangeColor());
@@ -61,10 +61,13 @@ public class Tile : MonoBehaviour
         do
         {
             t = (Time.time - startTime) / transitionTime;
-            material.color = Color.Lerp(color, targetColor, t);
+            material.SetFloat("_Duration", t);
             yield return null;
         } while (t < 1);
-        
+
+        //Set the Final Color to last color
+        material.SetColor("_FromColor", material.GetColor("_ToColor"));
+        material.SetFloat("_Duration", 0);
     }
 
     public int GetDiffNeighbours(int playerID)

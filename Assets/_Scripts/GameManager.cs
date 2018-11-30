@@ -281,7 +281,7 @@ public class GameManager : MonoBehaviour {
             tileToPlay = playableTiles[Random.Range(0, playableTiles.Count)];
         }
 
-        //yield return new WaitForSeconds(computerWaitTime);
+        yield return new WaitForSeconds(computerWaitTime);
 
         //Check if tile in view, then rotate if not.
         yield return StartCoroutine(BringTileToFront(tileToPlay));
