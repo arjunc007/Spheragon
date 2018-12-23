@@ -18,6 +18,11 @@ public class Player
         isAI = ai;
     }
 
+    public HashSet<Tile> GetTiles()
+    {
+        return ownedTiles;
+    }
+
     public Color GetColor()
     {
         return color;

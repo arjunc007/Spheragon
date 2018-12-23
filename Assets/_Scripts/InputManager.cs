@@ -13,6 +13,7 @@ public class InputManager : MonoBehaviour {
     private float pinchDiff;
 
     Camera cam;
+    private bool wasPaused = false;
 
     //Events and Delegates
     public delegate void OnClickEventHandler(Vector3 pos);
@@ -50,7 +51,6 @@ public class InputManager : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-
         if (!GameManager.isPaused)
         {
             if(useTouch)
@@ -113,6 +113,10 @@ public class InputManager : MonoBehaviour {
                 }
             }   //Not using touch
         }   //Game Loop
+        else
+        {
+            wasPaused = true;
+        }
     }
 
     private void ContinueInput(Vector2 position)
@@ -129,6 +133,11 @@ public class InputManager : MonoBehaviour {
 
     private void EndInput(Vector2 position)
     {
+        if (wasPaused)
+        {
+            wasPaused = false;
+            return;
+        }
         currentMousePosition = position;
         if (initialMousePosition == currentMousePosition)
         {

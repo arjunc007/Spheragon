@@ -3,26 +3,26 @@
 public class AudioManager : MonoBehaviour {
 
     public AudioClip[] audioClips;
-    private new AudioSource audio;
+    private AudioSource audioSource;
 
 	// Use this for initialization
 	void Start () {
 
-        audio = GetComponent<AudioSource>();
+        audioSource = GetComponent<AudioSource>();
 
-        if (!audio.playOnAwake)
+        if (!audioSource.playOnAwake)
         {
-            audio.clip = audioClips[Random.Range(0, audioClips.Length)];
-            audio.Play();
+            audioSource.clip = audioClips[Random.Range(0, audioClips.Length)];
+            audioSource.Play();
         }
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if(!audio.isPlaying)
+		if(!audioSource.isPlaying)
         {
-            audio.clip = audioClips[Random.Range(0, audioClips.Length)];
-            audio.Play();
+            audioSource.clip = audioClips[Random.Range(0, audioClips.Length)];
+            audioSource.Play();
         }
 	}
 }

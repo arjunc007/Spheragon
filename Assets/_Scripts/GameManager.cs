@@ -4,17 +4,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public enum Shape
-{
-    Pentagon,
-    Hexagon
-};
-
 public class GameManager : MonoBehaviour {
 
+    public static GameManager instance = null;
     public Transform sphere;
     public float dragSpeed = 5;             //Spped of dragging action
-    public static float TileRadius = 0.8f;  //Find neighbours in Tile
+    public static float TileRadius = 1.0f;  //Find neighbours in Tile
     public float computerWaitTime = 0.5f;
     public float aiRotSpeed = 5;
     public float maxFoV, minFoV;
@@ -25,6 +20,8 @@ public class GameManager : MonoBehaviour {
     public GameObject pauseMenu;
     public Text[] scoreText;
     public TextMeshProUGUI scoreSeparator;
+    public GameObject rangeUpIcon;
+    public GameObject invertIcon;
 
     //Game Logic
     public float difficulty = 0.2f;
@@ -41,6 +38,14 @@ public class GameManager : MonoBehaviour {
     public static bool isPaused;
     private bool pauseClicks;
 
+    private void Awake()
+    {
+        if (instance == null)
+            instance = this;
+        else if (instance != this)
+            Destroy(this);
+    }
+
     // Use this for initialization
     void Start () {
         InputManager.instance.ClickedEvent += OnClick;
@@ -48,6 +53,7 @@ public class GameManager : MonoBehaviour {
         InputManager.instance.DragEndEvent += OnDragEnd;
         InputManager.instance.PinchEvent += OnPinch;
 
+        //Abstrat out to enable choie of colors
         Color p1Color = Color.red;
         Color p2Color = Color.blue;
 
@@ -56,10 +62,55 @@ public class GameManager : MonoBehaviour {
         players.Add(new Player(0, p1Color, GameData.isSP && randomiseP1));
         players.Add(new Player(1, p2Color, GameData.isSP && !randomiseP1));
 
+        List<Tile> pentaTiles = new List<Tile>();
+
         Tile[] tiles = FindObjectsOfType<Tile>();
         foreach (Tile tile in tiles)
         {
             freeTiles.Add(tile);
+            //Keep penta Tiles separate
+            if(tile.type == TileType.Pentagon)
+            {
+                pentaTiles.Add(tile);
+            }
+        }
+
+        //Get a pentagon
+        RaycastHit hit;
+        
+        //Get opposite pentagon by raycasting along normal
+        Physics.Raycast(pentaTiles[0].transform.position, -pentaTiles[0].GetNormal() * 20, out hit);
+
+        Tile p2Tile = hit.transform.gameObject.GetComponent<Tile>();
+
+        //Bring first player to front
+        sphere.Rotate(Vector3.Cross(pentaTiles[0].GetNormal(), Vector3.back), Vector3.Angle(pentaTiles[0].GetNormal(), Vector3.back), Space.World);
+
+        //Initialise both by making them startTiles
+        pentaTiles[0].SetOwner(players[0]);
+        freeTiles.Remove(pentaTiles[0]);
+        players[0].AddTile(pentaTiles[0]);
+        pentaTiles.RemoveAt(0);
+
+        p2Tile.SetOwner(players[1]);
+        freeTiles.Remove(p2Tile);
+        players[1].AddTile(p2Tile);
+        pentaTiles.Remove(p2Tile);
+
+        //Assign the rest of the tiles powers
+        foreach (Tile tile in pentaTiles)
+        {
+            tile.type = (TileType)Random.Range(4, 6);
+
+            //Instantiate icon sprite over the tile
+            if(tile.type == TileType.Invert)
+            {
+                Instantiate(invertIcon, tile.transform.position + tile.GetNormal() * 0.01f, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
+            }
+            else if(tile.type == TileType.RangeUp)
+            {
+                Instantiate(rangeUpIcon, tile.transform.position + tile.GetNormal() * 0.01f, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
+            }
         }
 
         isPaused = false;
@@ -116,6 +167,36 @@ public class GameManager : MonoBehaviour {
         {
             pauseClicks = true;
             clickedTile.ChangeTo(players[playerTurn]);
+
+            //Give Power
+            if (clickedTile.type == TileType.RangeUp)
+                players[playerTurn].SetDepth(2);
+            else if (players[playerTurn].Depth() > 1)
+            {
+                //If depth >1, reduce by 1
+                players[playerTurn].SetDepth(players[playerTurn].Depth() - 1);
+            }
+
+            if(clickedTile.type == TileType.Invert)
+            {
+                HashSet<Tile> p1Tiles = new HashSet<Tile>(players[playerTurn].GetTiles());
+                HashSet<Tile> p2Tiles = new HashSet<Tile>(players[playerTurn^1].GetTiles());
+                players[playerTurn].GetTiles().Clear();
+                foreach (var tile in p1Tiles)
+                {
+                    tile.ChangeTo(players[playerTurn ^ 1]); //XOR to flip 1 and 0
+                    players[playerTurn ^ 1].AddTile(tile);
+                }
+
+                foreach (var tile in p2Tiles)
+                {
+                    tile.ChangeTo(players[playerTurn]); //XOR to flip 1 and 0
+                    players[playerTurn].AddTile(tile);
+                }
+
+                players[playerTurn ^ 1].GetTiles().IntersectWith(p1Tiles);
+            }
+
             players[playerTurn].AddTile(clickedTile);
             //Free tiles are assigned for first time, so don't need to remove from other player lists
             freeTiles.Remove(clickedTile);
@@ -226,8 +307,7 @@ public class GameManager : MonoBehaviour {
 
     public void OnDragEnd(Vector3 speed)
     {
-        //Debug.LogFormat("Ended drag with speed {0}", speed.magnitude);
-        if (!pauseClicks)
+        if(speed.magnitude > 500)
         {
             flickSpeed = speed * dragSpeed;
             StartCoroutine(KeepRotating());

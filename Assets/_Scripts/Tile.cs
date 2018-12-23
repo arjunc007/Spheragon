@@ -2,13 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum TileType
+{
+    Pentagon,
+    Hexagon,
+    Regular,
+    Start,
+    Invert,
+    RangeUp
+};
+
 public class Tile : MonoBehaviour
 {
     public Material startMat;
     public AudioClip[] tapSounds;
 
     public static float transitionTime = 0.5f;
-    public Shape shape;
+    public TileType type;
 
     public List<Tile> neighbours = new List<Tile>();
 
@@ -18,7 +28,7 @@ public class Tile : MonoBehaviour
     private Color color, targetColor;
     float startTime;
 
-    public void Start()
+    public virtual void Start()
     {
         //Set material as copy of original
         material = new Material(startMat);
@@ -27,9 +37,14 @@ public class Tile : MonoBehaviour
         FindNeighbours();
 
         if (neighbours.Count == 6)
-            shape = Shape.Hexagon;
+        {
+            type = TileType.Hexagon;
+        }
         else
-            shape = Shape.Pentagon;
+        {
+            type = TileType.Pentagon;
+            //material.SetColor("_FromColor", Color.yellow);
+        }
 
         normal = GetComponent<MeshFilter>().mesh.normals[0];
     }
@@ -45,13 +60,28 @@ public class Tile : MonoBehaviour
         }
     }
 
+    public void SetOwner(Player player)
+    {
+        owner = player.GetID();
+        material.SetColor("_FromColor", player.GetColor());
+
+    }
+
     public void ChangeTo(Player player)
     {
         AudioSource.PlayClipAtPoint(tapSounds[Random.Range(0, tapSounds.Length)], transform.root.position);
 
         owner = player.GetID();
 
-        material.SetColor("_ToColor", player.GetColor());
+        Color edgeColor = player.GetColor();
+
+        material.SetColor("_ToColor", edgeColor);
+
+        float h, s, v;
+        Color.RGBToHSV(edgeColor, out h, out s, out v);
+        edgeColor = Color.HSVToRGB(h, s * 0.9f, v, true) * Mathf.Pow(2.0f, 2);
+        material.SetColor("_EdgeColor", edgeColor);
+        
         //targetColor = player.GetColor();
         startTime = Time.time;
 
