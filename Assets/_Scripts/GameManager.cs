@@ -67,6 +67,7 @@ public class GameManager : MonoBehaviour {
         Tile[] tiles = FindObjectsOfType<Tile>();
         foreach (Tile tile in tiles)
         {
+            tile.Initialise();
             freeTiles.Add(tile);
             //Keep penta Tiles separate
             if(tile.type == TileType.Pentagon)

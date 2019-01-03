@@ -28,7 +28,7 @@ public class Tile : MonoBehaviour
     private Color color, targetColor;
     float startTime;
 
-    public virtual void Start()
+    public void Initialise()
     {
         //Set material as copy of original
         material = new Material(startMat);
