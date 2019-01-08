@@ -6,10 +6,10 @@ public enum TileType
 {
     Pentagon,
     Hexagon,
-    Regular,
     Start,
     Invert,
-    RangeUp
+    RangeUp,
+    Skip
 };
 
 public class Tile : MonoBehaviour

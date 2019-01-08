@@ -22,12 +22,16 @@ public class GameManager : MonoBehaviour {
     public TextMeshProUGUI scoreSeparator;
     public GameObject rangeUpIcon;
     public GameObject invertIcon;
+    public GameObject skipIcon;
 
     //Game Logic
     public float difficulty = 0.2f;
     private int playerTurn = 0;
     private List<Player> players = new List<Player>();
     private HashSet<Tile> freeTiles = new HashSet<Tile>();
+    /// <summary>
+    /// number of instances of changeneighbour currently running
+    /// </summary>
     private int changeNeighbourCount = 0;
     private float zoomedRotSpeed;
     private float initialFoV;
@@ -101,7 +105,7 @@ public class GameManager : MonoBehaviour {
         //Assign the rest of the tiles powers
         foreach (Tile tile in pentaTiles)
         {
-            tile.type = (TileType)Random.Range(4, 6);
+            tile.type = (TileType)Random.Range(3, 6);
 
             //Instantiate icon sprite over the tile
             if(tile.type == TileType.Invert)
@@ -111,6 +115,10 @@ public class GameManager : MonoBehaviour {
             else if(tile.type == TileType.RangeUp)
             {
                 Instantiate(rangeUpIcon, tile.transform.position + tile.GetNormal() * 0.01f, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
+            }
+            else if(tile.type == TileType.Skip)
+            {
+                Instantiate(skipIcon, tile.transform.position + tile.GetNormal() * 0.01f, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
             }
         }
 
@@ -169,16 +177,18 @@ public class GameManager : MonoBehaviour {
             pauseClicks = true;
             clickedTile.ChangeTo(players[playerTurn]);
 
+            players[playerTurn].AddTile(clickedTile);
+            //Free tiles are assigned for first time, so don't need to remove from other player lists
+            freeTiles.Remove(clickedTile);
+
             //Give Power
             if (clickedTile.type == TileType.RangeUp)
-                players[playerTurn].SetDepth(2);
-            else if (players[playerTurn].Depth() > 1)
             {
-                //If depth >1, reduce by 1
-                players[playerTurn].SetDepth(players[playerTurn].Depth() - 1);
+                players[playerTurn].SetDepth(2);
+                ChangePlayerTurn();
+                return;
             }
-
-            if(clickedTile.type == TileType.Invert)
+            else if (clickedTile.type == TileType.Invert)
             {
                 HashSet<Tile> p1Tiles = new HashSet<Tile>(players[playerTurn].GetTiles());
                 HashSet<Tile> p2Tiles = new HashSet<Tile>(players[playerTurn^1].GetTiles());
@@ -191,18 +201,35 @@ public class GameManager : MonoBehaviour {
 
                 foreach (var tile in p2Tiles)
                 {
-                    tile.ChangeTo(players[playerTurn]); //XOR to flip 1 and 0
+                    tile.ChangeTo(players[playerTurn]);
                     players[playerTurn].AddTile(tile);
                 }
 
                 players[playerTurn ^ 1].GetTiles().IntersectWith(p1Tiles);
+                ChangePlayerTurn();
+                return;
             }
+            else if(clickedTile.type == TileType.Skip)
+            {
+                ///Add animation and stuff
 
-            players[playerTurn].AddTile(clickedTile);
-            //Free tiles are assigned for first time, so don't need to remove from other player lists
-            freeTiles.Remove(clickedTile);
-
-            StartCoroutine(ChangeNeighbours(clickedTile, players[playerTurn].Depth()));
+                //Change player turn
+                playerTurn ^= 1;
+                ChangePlayerTurn();
+                return;
+            }
+            else if (players[playerTurn].Depth() > 1)
+            {
+                //Changes player turn counter at end of coroutine
+                StartCoroutine(ChangeNeighbours(clickedTile, players[playerTurn].Depth()));
+                //If depth >1, reduce by 1
+                players[playerTurn].SetDepth(players[playerTurn].Depth() - 1);
+            }
+            else
+            {
+                //Changes player turn counter at end of coroutine
+                StartCoroutine(ChangeNeighbours(clickedTile, players[playerTurn].Depth()));
+            }
         }
     }
 
@@ -229,9 +256,7 @@ public class GameManager : MonoBehaviour {
         foreach (Tile neighbour in tile.neighbours)
         {
             //Check if neighbour is empty or owned
-            if (neighbour.IsFree() || neighbour.CheckOwner(playerTurn))
-                continue;
-            else
+            if (neighbour.CheckOwner(playerTurn ^ 1))
             {
                 //Neighbor is occupied by other player
                 neighbour.ChangeTo(players[playerTurn]);
@@ -245,19 +270,17 @@ public class GameManager : MonoBehaviour {
                         player.RemoveTile(neighbour);
                 }
 
-                //Do for all neighbors of changed tile
-                if (--depth > 0)
+                //Update Score
+                for (int i = 0; i < players.Count; i++)
                 {
-                    StartCoroutine(ChangeNeighbours(neighbour, depth));
+                    scoreText[i].text = players[i].GetScore().ToString();
                 }
-                else
-                {
-                    //Update Score
-                    for (int i = 0; i < players.Count; i++)
-                    {
-                        scoreText[i].text = players[i].GetScore().ToString();
-                    }
-                }
+            }
+
+            //Do for all neighbors of changed tile
+            if (depth > 1)
+            {
+                StartCoroutine(ChangeNeighbours(neighbour, depth - 1));
             }
         }
 
@@ -266,14 +289,19 @@ public class GameManager : MonoBehaviour {
         //Increment player turn counter because turn has ended and all neighbours visited
         if (changeNeighbourCount == 0)
         {
-            pauseClicks = false;
-            playerTurn = ++playerTurn > players.Count - 1 ? 0 : playerTurn;
+            ChangePlayerTurn();
+        }
+    }
 
-            //For next move, check again, if player if AI
-            if (players[playerTurn].IsAI())
-            {
-                StartCoroutine(PlayTile());
-            }
+    private void ChangePlayerTurn()
+    {
+        pauseClicks = false;
+        playerTurn = ++playerTurn > players.Count - 1 ? 0 : playerTurn;
+
+        //For next move, check again, if player if AI
+        if (players[playerTurn].IsAI())
+        {
+            StartCoroutine(PlayTile());
         }
     }
 
