@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour {
 
     //UI
     public GameObject pauseMenu;
+    public GameObject turnIndicator;
     public Text[] scoreText;
     public TextMeshProUGUI scoreSeparator;
     public GameObject rangeUpIcon;
@@ -41,6 +42,7 @@ public class GameManager : MonoBehaviour {
     [HideInInspector]
     public static bool isPaused;
     private bool pauseClicks;
+    private bool turnUI;
 
     private void Awake()
     {
@@ -140,6 +142,8 @@ public class GameManager : MonoBehaviour {
 
         zoomedRotSpeed = dragSpeed;
         initialFoV = Camera.main.fieldOfView;
+
+        turnIndicator.GetComponent<Image>().color = players[playerTurn].GetColor();
     }
 
     public void PauseGame()
@@ -170,7 +174,7 @@ public class GameManager : MonoBehaviour {
         return null;
     }
 
-    private void MakeMove(Tile clickedTile)
+    private IEnumerator MakeMove(Tile clickedTile)
     {
         if (clickedTile != null && clickedTile.IsFree())
         {
@@ -185,8 +189,8 @@ public class GameManager : MonoBehaviour {
             if (clickedTile.type == TileType.RangeUp)
             {
                 players[playerTurn].SetDepth(2);
-                ChangePlayerTurn();
-                return;
+                yield return new WaitForSecondsRealtime(Tile.transitionTime);
+                StartCoroutine(ChangePlayerTurn());
             }
             else if (clickedTile.type == TileType.Invert)
             {
@@ -206,8 +210,8 @@ public class GameManager : MonoBehaviour {
                 }
 
                 players[playerTurn ^ 1].GetTiles().IntersectWith(p1Tiles);
-                ChangePlayerTurn();
-                return;
+                yield return new WaitForSecondsRealtime(Tile.transitionTime);
+                StartCoroutine(ChangePlayerTurn());
             }
             else if(clickedTile.type == TileType.Skip)
             {
@@ -215,8 +219,8 @@ public class GameManager : MonoBehaviour {
 
                 //Change player turn
                 playerTurn ^= 1;
-                ChangePlayerTurn();
-                return;
+                yield return new WaitForSecondsRealtime(Tile.transitionTime);
+                StartCoroutine(ChangePlayerTurn());
             }
             else if (players[playerTurn].Depth() > 1)
             {
@@ -251,7 +255,7 @@ public class GameManager : MonoBehaviour {
             scoreText[i].text = players[i].GetScore().ToString();
         }
 
-        yield return new WaitForSeconds(Tile.transitionTime);
+        yield return new WaitForSecondsRealtime(Tile.transitionTime);
 
         foreach (Tile neighbour in tile.neighbours)
         {
@@ -289,19 +293,49 @@ public class GameManager : MonoBehaviour {
         //Increment player turn counter because turn has ended and all neighbours visited
         if (changeNeighbourCount == 0)
         {
-            ChangePlayerTurn();
+            StartCoroutine(ChangePlayerTurn());
         }
     }
 
-    private void ChangePlayerTurn()
+    private IEnumerator ChangePlayerTurn()
     {
         pauseClicks = false;
-        playerTurn = ++playerTurn > players.Count - 1 ? 0 : playerTurn;
+        
+        yield return StartCoroutine(ChangeTurnUI());
 
         //For next move, check again, if player if AI
         if (players[playerTurn].IsAI())
         {
             StartCoroutine(PlayTile());
+        }
+    }
+
+    private IEnumerator ChangeTurnUI()
+    {
+        //rotate to mid
+        Quaternion startRot = turnIndicator.transform.rotation;
+        Quaternion endRot = turnIndicator.transform.rotation * Quaternion.Euler(0, 90, 0);
+        float dt = 0;
+
+        while (turnIndicator.transform.rotation != endRot)
+        {
+            turnIndicator.transform.rotation = Quaternion.Lerp(startRot, endRot, dt / 0.1f);
+            dt += Time.deltaTime;
+            yield return null;
+        }
+
+        //change turn & color
+        playerTurn ^= 1;
+        turnIndicator.GetComponent<Image>().color = players[playerTurn].GetColor();
+        //rotate rest of the way
+        startRot = turnIndicator.transform.rotation;
+        endRot = turnIndicator.transform.rotation * Quaternion.Euler(0, 90, 0);
+        dt = 0;
+        while (turnIndicator.transform.rotation != endRot)
+        {
+            turnIndicator.transform.rotation = Quaternion.Lerp(startRot, endRot, dt / 0.1f);
+            dt += Time.deltaTime;
+            yield return null;
         }
     }
 
@@ -313,7 +347,7 @@ public class GameManager : MonoBehaviour {
             //Do click actions
             Tile clickedTile = GetClickedTile(Input.mousePosition);
             //Debug.Log(clickedTile);
-            MakeMove(clickedTile);
+            StartCoroutine(MakeMove(clickedTile));
 
             if (freeTiles.Count < 1)
             {
