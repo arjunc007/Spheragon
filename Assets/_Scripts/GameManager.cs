@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 
@@ -59,7 +60,7 @@ public class GameManager : MonoBehaviour {
         InputManager.instance.DragEndEvent += OnDragEnd;
         InputManager.instance.PinchEvent += OnPinch;
 
-        //Abstrat out to enable choie of colors
+        //Abstract out to enable choie of colors
         Color p1Color = Color.red;
         Color p2Color = Color.blue;
 
@@ -197,6 +198,7 @@ public class GameManager : MonoBehaviour {
                 HashSet<Tile> p1Tiles = new HashSet<Tile>(players[playerTurn].GetTiles());
                 HashSet<Tile> p2Tiles = new HashSet<Tile>(players[playerTurn^1].GetTiles());
                 players[playerTurn].GetTiles().Clear();
+                yield return new WaitForSecondsRealtime(Tile.transitionTime);
                 foreach (var tile in p1Tiles)
                 {
                     tile.ChangeTo(players[playerTurn ^ 1]); //XOR to flip 1 and 0
@@ -259,6 +261,10 @@ public class GameManager : MonoBehaviour {
 
         foreach (Tile neighbour in tile.neighbours)
         {
+            //Do not run for pentagons
+            if (neighbour.type != TileType.Hexagon)
+                continue;
+
             //Check if neighbour is empty or owned
             if (neighbour.CheckOwner(playerTurn ^ 1))
             {
@@ -447,5 +453,10 @@ public class GameManager : MonoBehaviour {
 
             yield return null;
         }
+    }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
