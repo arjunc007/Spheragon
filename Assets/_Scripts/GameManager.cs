@@ -7,6 +7,9 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 
+
+    public bool testEnd = false;
+
     public static GameManager instance = null;
     public Transform sphere;
     public float dragSpeed = 5;             //Spped of dragging action
@@ -20,8 +23,8 @@ public class GameManager : MonoBehaviour {
     //UI
     public GameObject pauseMenu;
     public GameObject turnIndicator;
-    public Text[] scoreText;
-    public TextMeshProUGUI scoreSeparator;
+    //public Text[] scoreText;
+    //public TextMeshProUGUI scoreSeparator;
     public GameObject rangeUpIcon;
     public GameObject invertIcon;
     public GameObject skipIcon;
@@ -128,12 +131,12 @@ public class GameManager : MonoBehaviour {
         isPaused = false;
         pauseClicks = false;
 
-        //Update Score colors
-        scoreSeparator.colorGradient = scoreSeparator.colorGradient = new VertexGradient(p1Color, p2Color, p1Color, p2Color);
-        for (int i = 0; i < players.Count; i++)
-        {
-            scoreText[i].color = players[i].GetColor();
-        }
+        ////Update Score colors
+        //scoreSeparator.colorGradient = scoreSeparator.colorGradient = new VertexGradient(p1Color, p2Color, p1Color, p2Color);
+        //for (int i = 0; i < players.Count; i++)
+        //{
+        //    scoreText[i].color = players[i].GetColor();
+        //}
 
         //Make the first move, if player 1 if AI
         if(players[playerTurn].IsAI())
@@ -239,23 +242,38 @@ public class GameManager : MonoBehaviour {
         }
     }
 
-    private void EndGame()
+    private IEnumerator EndGame()
     {
+        yield return new WaitForSecondsRealtime(2 * Tile.transitionTime);
+
+        Transform uiCanvas = pauseMenu.transform.parent;
         //Show final score
-        //Restart
-        //Home
-        //
+        for (int i = 1; i < uiCanvas.childCount; i++)
+            uiCanvas.GetChild(i).gameObject.SetActive(false);
+
+        Transform endMenu = uiCanvas.GetChild(0);
+        if (players[0].GetScore() > players[1].GetScore())
+        {
+            endMenu.GetChild(0).GetComponentInChildren<TextMeshProUGUI>().text = players[0].GetScore().ToString();
+            endMenu.GetChild(0).GetComponent<Image>().color = players[0].GetColor();
+            endMenu.GetChild(1).GetComponentInChildren<TextMeshProUGUI>().text = players[1].GetScore().ToString();
+            endMenu.GetChild(1).GetComponent<Image>().color = players[1].GetColor();
+        }
+        else
+        {
+            endMenu.GetChild(0).GetComponentInChildren<TextMeshProUGUI>().text = players[1].GetScore().ToString();
+            endMenu.GetChild(0).GetComponent<Image>().color = players[1].GetColor();
+            endMenu.GetChild(1).GetComponentInChildren<TextMeshProUGUI>().text = players[0].GetScore().ToString();
+            endMenu.GetChild(1).GetComponent<Image>().color = players[0].GetColor();
+        }
+
+        uiCanvas.GetChild(0).gameObject.SetActive(true);
+
     }
 
     private IEnumerator ChangeNeighbours(Tile tile, int depth)
     {
         changeNeighbourCount++;
-
-        //Update Score
-        for (int i = 0; i < players.Count; i++)
-        {
-            scoreText[i].text = players[i].GetScore().ToString();
-        }
 
         yield return new WaitForSecondsRealtime(Tile.transitionTime);
 
@@ -280,11 +298,11 @@ public class GameManager : MonoBehaviour {
                         player.RemoveTile(neighbour);
                 }
 
-                //Update Score
-                for (int i = 0; i < players.Count; i++)
-                {
-                    scoreText[i].text = players[i].GetScore().ToString();
-                }
+                ////Update Score
+                //for (int i = 0; i < players.Count; i++)
+                //{
+                //    scoreText[i].text = players[i].GetScore().ToString();
+                //}
             }
 
             //Do for all neighbors of changed tile
@@ -355,9 +373,9 @@ public class GameManager : MonoBehaviour {
             //Debug.Log(clickedTile);
             StartCoroutine(MakeMove(clickedTile));
 
-            if (freeTiles.Count < 1)
+            if (freeTiles.Count < 1 || testEnd)
             {
-                EndGame();
+                StartCoroutine(EndGame());
             }
         }
     }
