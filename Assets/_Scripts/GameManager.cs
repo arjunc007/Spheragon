@@ -7,9 +7,6 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 
-
-    public bool testEnd = false;
-
     public static GameManager instance = null;
     public Transform sphere;
     public float dragSpeed = 5;             //Spped of dragging action
@@ -23,8 +20,6 @@ public class GameManager : MonoBehaviour {
     //UI
     public GameObject pauseMenu;
     public GameObject turnIndicator;
-    //public Text[] scoreText;
-    //public TextMeshProUGUI scoreSeparator;
     public GameObject rangeUpIcon;
     public GameObject invertIcon;
     public GameObject skipIcon;
@@ -297,12 +292,6 @@ public class GameManager : MonoBehaviour {
                     if (player.GetID() != playerTurn)
                         player.RemoveTile(neighbour);
                 }
-
-                ////Update Score
-                //for (int i = 0; i < players.Count; i++)
-                //{
-                //    scoreText[i].text = players[i].GetScore().ToString();
-                //}
             }
 
             //Do for all neighbors of changed tile
@@ -373,7 +362,7 @@ public class GameManager : MonoBehaviour {
             //Debug.Log(clickedTile);
             StartCoroutine(MakeMove(clickedTile));
 
-            if (freeTiles.Count < 1 || testEnd)
+            if (freeTiles.Count < 1)
             {
                 StartCoroutine(EndGame());
             }
@@ -457,9 +446,7 @@ public class GameManager : MonoBehaviour {
         yield return StartCoroutine(BringTileToFront(tileToPlay));
 
         //Get the tile by some logic above, and then call this function
-        MakeMove(tileToPlay);
-        
-        //uiManager.SetTurnText(playerTurn);
+        StartCoroutine(MakeMove(tileToPlay));
     }
 
     IEnumerator BringTileToFront(Tile t)
