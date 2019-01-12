@@ -64,8 +64,8 @@ public class GameManager : MonoBehaviour {
 
         bool randomiseP1 = Random.value > 0.5f;
         
-        players.Add(new Player(0, p1Color, GameData.isSP && randomiseP1));
-        players.Add(new Player(1, p2Color, GameData.isSP && !randomiseP1));
+        players.Add(new Player(0, GameData.playerColor[0], GameData.isSP && randomiseP1));
+        players.Add(new Player(1, GameData.playerColor[1], GameData.isSP && !randomiseP1));
 
         List<Tile> pentaTiles = new List<Tile>();
 

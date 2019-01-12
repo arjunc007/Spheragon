@@ -1,28 +1,31 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MenuScript : MonoBehaviour {
 
     public string gameScene = "Game";
     public string menuScene = "Main Menu";
+    public Sprite audioImage;
+    public Sprite muteImage;
+    public Transform audioButton;
     public GameObject loadingScreen;
 
-	// Use this for initialization
-	void Start () {
-	}
-	
-	// Update is called once per frame
-	void Update () {
+    private void Start()
+    {
+        if (GameData.musicOn)
+            audioButton.GetComponent<Image>().sprite = audioImage;
+        else
+            audioButton.GetComponent<Image>().sprite = muteImage;
+    }
+
+    // Update is called once per frame
+    void Update () {
         if (Input.GetKeyUp(KeyCode.Escape))
         {
             OnBackButton();
         }
-    }
-
-    public void SelectMode()
-    {
-
     }
 
     public void StartGame(bool singlePlayer)
@@ -51,6 +54,16 @@ public class MenuScript : MonoBehaviour {
     public void GoToMenu()
     {
         StartCoroutine(LoadScene(menuScene));
+    }
+
+    public void ToggleAudio()
+    {
+        GameData.musicOn = !GameData.musicOn;
+
+        if (GameData.musicOn)
+            audioButton.GetComponent<Image>().sprite = audioImage;
+        else
+            audioButton.GetComponent<Image>().sprite = muteImage;
     }
 
     public void OnBackButton()
