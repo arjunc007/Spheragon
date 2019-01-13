@@ -66,6 +66,12 @@ public class MenuScript : MonoBehaviour {
             audioButton.GetComponent<Image>().sprite = muteImage;
     }
 
+    public void PlayTapSound()
+    {
+        if (GameData.musicOn)
+            GetComponent<AudioSource>().Play();
+    }
+
     public void OnBackButton()
     {
         if(FindObjectOfType<GameManager>() == null)

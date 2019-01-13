@@ -69,7 +69,8 @@ public class Tile : MonoBehaviour
 
     public void ChangeTo(Player player)
     {
-        AudioSource.PlayClipAtPoint(tapSounds[Random.Range(0, tapSounds.Length)], transform.root.position);
+        if(GameData.musicOn)
+            AudioSource.PlayClipAtPoint(tapSounds[Random.Range(0, tapSounds.Length)], transform.root.position);
 
         owner = player.GetID();
 
