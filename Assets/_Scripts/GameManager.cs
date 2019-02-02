@@ -15,7 +15,8 @@ public class GameManager : MonoBehaviour {
     public float aiRotSpeed = 5;
     public float maxFoV, minFoV;
     public float perspectiveZoomSpeed = 5;
-    public float flickDamping = 0.7f;
+    public float flickDeceleration = 5;
+    private float flickDamping;
 
     //UI
     public GameObject pauseMenu;
@@ -125,13 +126,6 @@ public class GameManager : MonoBehaviour {
 
         isPaused = false;
         pauseClicks = false;
-
-        ////Update Score colors
-        //scoreSeparator.colorGradient = scoreSeparator.colorGradient = new VertexGradient(p1Color, p2Color, p1Color, p2Color);
-        //for (int i = 0; i < players.Count; i++)
-        //{
-        //    scoreText[i].color = players[i].GetColor();
-        //}
 
         //Make the first move, if player 1 if AI
         if(players[playerTurn].IsAI())
@@ -406,14 +400,22 @@ public class GameManager : MonoBehaviour {
     {
         while(flickSpeed.magnitude > 0)
         {
+            flickDamping = flickSpeed.magnitude * -flickDeceleration;
+            Debug.Log(flickSpeed.magnitude);
             sphere.Rotate(Vector3.Cross(flickSpeed, Vector3.back), Space.World);
-            flickSpeed *= flickDamping;
+            Vector3 newSpeed = flickSpeed - flickSpeed.normalized * Time.deltaTime * flickDamping;
+            if (Vector3.Dot(newSpeed, flickSpeed) > 0)
+                flickSpeed = newSpeed;
+            else
+                flickSpeed.Set(0, 0, 0);
             yield return null;
         }
     }
 
     private IEnumerator PlayTile()
     {
+        //Disable user clicks while AI running
+        pauseClicks = true;
 
         if (freeTiles.Count == 0)
             yield break;

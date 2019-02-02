@@ -64,10 +64,10 @@ public class InputManager : MonoBehaviour {
                             BeginInput(touch.position);
                             break;
                         case TouchPhase.Moved:
-                            ContinueInput(touch.position);
+                            ContinueInput(touch.deltaPosition * Time.deltaTime / touch.deltaTime);
                             break;
                         case TouchPhase.Ended:
-                            EndInput(touch.position);
+                            EndInput(touch.deltaPosition * Time.deltaTime / touch.deltaTime);
                             break;
                     }
                 }
@@ -100,11 +100,15 @@ public class InputManager : MonoBehaviour {
                 }
                 else if (Input.GetMouseButtonUp(0))
                 {
-                    EndInput(Input.mousePosition);
+                    currentMousePosition = Input.mousePosition;
+                    EndInput(currentMousePosition - lastMousePosition);
+                    lastMousePosition = currentMousePosition;
                 }
                 else if (Input.GetMouseButton(0))
                 {
-                    ContinueInput(Input.mousePosition);
+                    currentMousePosition = Input.mousePosition;
+                    ContinueInput(currentMousePosition - lastMousePosition);
+                    lastMousePosition = currentMousePosition;
                 }
                 else if(Input.mousePresent)
                 {
@@ -119,27 +123,21 @@ public class InputManager : MonoBehaviour {
         }
     }
 
-    private void ContinueInput(Vector2 position)
+    private void ContinueInput(Vector2 deltaPosition)
     {
-        currentMousePosition = Input.mousePosition;
-        if (lastMousePosition != currentMousePosition)
-        {
-            dragSpeed = currentMousePosition - lastMousePosition;
-            OnDragging();
-        }
-
-        lastMousePosition = currentMousePosition;
+        dragSpeed = deltaPosition;
+        OnDragging();
     }
 
-    private void EndInput(Vector2 position)
+    private void EndInput(Vector2 deltaPosition)
     {
         if (wasPaused)
         {
             wasPaused = false;
             return;
         }
-        currentMousePosition = position;
-        if (initialMousePosition == currentMousePosition)
+
+        if (deltaPosition.sqrMagnitude == 0)
         {
             //Debug.Log("Clicked");
             OnClick();
@@ -147,7 +145,7 @@ public class InputManager : MonoBehaviour {
         else
         {
             //Debug.Log("Drag ended");
-            dragSpeed = (currentMousePosition - lastMousePosition) / Time.deltaTime;
+            dragSpeed = (deltaPosition) / Time.deltaTime;
             OnDragEnd();
         }
     }
