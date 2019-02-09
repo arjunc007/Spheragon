@@ -11,7 +11,8 @@ public class ColorButton : MonoBehaviour {
 
     private void Start()
     {
-        preview.color = GameData.playerColor[playerID];
+        if(preview)
+            preview.color = GameData.playerColor[playerID];
     }
 
     private void OnEnable()

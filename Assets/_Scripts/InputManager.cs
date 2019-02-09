@@ -168,7 +168,6 @@ public class InputManager : MonoBehaviour {
         if(DraggingEvent != null)
         {
             DraggingEvent(dragSpeed);
-            //DraggingEvent(cam.ScreenToWorldPoint(new Vector3(dragLength.x, dragLength.y, cam.nearClipPlane)));
         }
     }
 
