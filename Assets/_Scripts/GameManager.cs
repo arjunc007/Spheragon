@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour {
     //UI
     public GameObject pauseMenu;
     public GameObject turnIndicator;
+    public Transform scoreIndicator;
     public GameObject rangeUpIcon;
     public GameObject invertIcon;
     public GameObject skipIcon;
@@ -42,7 +43,6 @@ public class GameManager : MonoBehaviour {
     [HideInInspector]
     public static bool isPaused;
     private bool pauseClicks;
-    private bool turnUI;
 
     private void Awake()
     {
@@ -136,8 +136,15 @@ public class GameManager : MonoBehaviour {
         zoomedRotSpeed = dragSpeed;
         initialFoV = Camera.main.fieldOfView;
 
+        //Initialise turn and score indicators
         turnIndicator.GetComponentInChildren<Image>().color = players[playerTurn].GetColor();
         turnIndicator.GetComponentInChildren<TextMeshProUGUI>().SetText((playerTurn + 1).ToString());
+
+        scoreIndicator.GetChild(0).GetChild(0).GetComponent<Image>().color = players[0].GetColor();
+        scoreIndicator.GetChild(0).GetChild(1).GetComponent<Image>().color = players[1].GetColor();
+        scoreIndicator.GetChild(0).GetComponent<Image>().color = players[1].GetColor();
+        scoreIndicator.GetChild(1).GetComponent<Image>().color = players[0].GetColor();
+        scoreIndicator.GetChild(1).GetComponent<Image>().fillAmount = 0.5f;
     }
 
     public void PauseGame()
@@ -308,7 +315,8 @@ public class GameManager : MonoBehaviour {
     private IEnumerator ChangePlayerTurn()
     {
         pauseClicks = false;
-        
+
+        StartCoroutine(ChangeScoreUI());
         yield return StartCoroutine(ChangeTurnUI());
 
         //For next move, check again, if player if AI
@@ -318,9 +326,24 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    private IEnumerator ChangeScoreUI()
+    {
+        //Update the score indicator
+        float initialFillAmount = scoreIndicator.GetChild(1).GetComponent<Image>().fillAmount;
+        float targetFillAmount = (float)players[0].GetScore() / (float)(players[0].GetScore() + players[1].GetScore());
+
+        float dt = 0;
+        while (scoreIndicator.GetChild(1).GetComponent<Image>().fillAmount != targetFillAmount)
+        {
+            scoreIndicator.GetChild(1).GetComponent<Image>().fillAmount = Mathf.Lerp(initialFillAmount, targetFillAmount, dt / 0.2f);
+            dt += Time.deltaTime;
+            yield return null;
+        }
+    }
+
     private IEnumerator ChangeTurnUI()
     {
-        //rotate to mid
+        //rotate turn indicator to mid
         Quaternion startRot = turnIndicator.transform.GetChild(0).rotation;
         Quaternion endRot = startRot * Quaternion.Euler(0, 90, 0);
         float dt = 0;
