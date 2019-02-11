@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour {
 
     //UI
     public GameObject pauseMenu;
+    public Transform endMenu;
     public GameObject turnIndicator;
     public Transform scoreIndicator;
     public GameObject rangeUpIcon;
@@ -248,7 +249,6 @@ public class GameManager : MonoBehaviour {
         for (int i = 1; i < uiCanvas.childCount; i++)
             uiCanvas.GetChild(i).gameObject.SetActive(false);
 
-        Transform endMenu = uiCanvas.GetChild(0);
         if (players[0].GetScore() > players[1].GetScore())
         {
             endMenu.GetChild(0).GetComponentInChildren<TextMeshProUGUI>().text = players[0].GetScore().ToString();
@@ -394,7 +394,7 @@ public class GameManager : MonoBehaviour {
     public void OnDrag(Vector3 diff)
     {
         flickSpeed = Vector3.zero;
-        if (!isPaused)
+        if (!(isPaused ||pauseClicks))
         {
             Vector3 axis = Vector3.Cross(diff, Vector3.forward).normalized;
 
@@ -404,7 +404,7 @@ public class GameManager : MonoBehaviour {
 
     public void OnDragEnd(Vector3 speed)
     {
-        if(speed.magnitude > 500)
+        if(!pauseClicks  && speed.magnitude > 500)
         {
             flickSpeed = speed * dragSpeed;
             StartCoroutine(KeepRotating());
@@ -480,6 +480,7 @@ public class GameManager : MonoBehaviour {
 
     IEnumerator BringTileToFront(Tile t)
     {
+        pauseClicks = true;
         while (Vector3.Angle(t.GetNormal(), Vector3.back) > 20)
         {
             float step = aiRotSpeed * Time.deltaTime;
@@ -487,6 +488,9 @@ public class GameManager : MonoBehaviour {
 
             yield return null;
         }
+
+        if (!isPaused)
+            pauseClicks = false;
     }
 
     public void RestartGame()
