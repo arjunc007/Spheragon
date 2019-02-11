@@ -136,7 +136,8 @@ public class GameManager : MonoBehaviour {
         zoomedRotSpeed = dragSpeed;
         initialFoV = Camera.main.fieldOfView;
 
-        turnIndicator.GetComponent<Image>().color = players[playerTurn].GetColor();
+        turnIndicator.GetComponentInChildren<Image>().color = players[playerTurn].GetColor();
+        turnIndicator.GetComponentInChildren<TextMeshProUGUI>().SetText((playerTurn + 1).ToString());
     }
 
     public void PauseGame()
@@ -320,27 +321,30 @@ public class GameManager : MonoBehaviour {
     private IEnumerator ChangeTurnUI()
     {
         //rotate to mid
-        Quaternion startRot = turnIndicator.transform.rotation;
-        Quaternion endRot = turnIndicator.transform.rotation * Quaternion.Euler(0, 90, 0);
+        Quaternion startRot = turnIndicator.transform.GetChild(0).rotation;
+        Quaternion endRot = startRot * Quaternion.Euler(0, 90, 0);
         float dt = 0;
 
-        while (turnIndicator.transform.rotation != endRot)
+        while (turnIndicator.transform.GetChild(0).rotation != endRot)
         {
-            turnIndicator.transform.rotation = Quaternion.Lerp(startRot, endRot, dt / 0.1f);
+            turnIndicator.transform.GetChild(0).rotation = Quaternion.Lerp(startRot, endRot, dt / 0.1f);
             dt += Time.deltaTime;
             yield return null;
         }
 
         //change turn & color
         playerTurn ^= 1;
-        turnIndicator.GetComponent<Image>().color = players[playerTurn].GetColor();
+        turnIndicator.GetComponentInChildren<Image>().color = players[playerTurn].GetColor();
+
+        //Change text
+        turnIndicator.GetComponentInChildren<TextMeshProUGUI>().SetText((playerTurn + 1).ToString());
         //rotate rest of the way
-        startRot = turnIndicator.transform.rotation;
-        endRot = turnIndicator.transform.rotation * Quaternion.Euler(0, 90, 0);
+        startRot = turnIndicator.transform.GetChild(0).rotation;
+        endRot = startRot * Quaternion.Euler(0, 90, 0);
         dt = 0;
-        while (turnIndicator.transform.rotation != endRot)
+        while (turnIndicator.transform.GetChild(0).rotation != endRot)
         {
-            turnIndicator.transform.rotation = Quaternion.Lerp(startRot, endRot, dt / 0.1f);
+            turnIndicator.transform.GetChild(0).rotation = Quaternion.Lerp(startRot, endRot, dt / 0.1f);
             dt += Time.deltaTime;
             yield return null;
         }

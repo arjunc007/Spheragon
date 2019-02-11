@@ -65,6 +65,7 @@ public class InputManager : MonoBehaviour {
                             break;
                         case TouchPhase.Moved:
                             ContinueInput(touch.deltaPosition * Time.deltaTime / touch.deltaTime);
+                            lastMousePosition = touch.position;
                             break;
                         case TouchPhase.Ended:
                             EndInput(touch.deltaPosition * Time.deltaTime / touch.deltaTime);
@@ -137,7 +138,7 @@ public class InputManager : MonoBehaviour {
             return;
         }
 
-        if (deltaPosition.sqrMagnitude == 0)
+        if (initialMousePosition == lastMousePosition)
         {
             //Debug.Log("Clicked");
             OnClick();
