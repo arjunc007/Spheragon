@@ -190,12 +190,20 @@ public class GameManager : MonoBehaviour {
             //Free tiles are assigned for first time, so don't need to remove from other player lists
             freeTiles.Remove(clickedTile);
 
+            //Temp comment for refactoring
+            //Power behaviour
+            //wait
+            //changeturn
+            //remove power
+
             //Give Power
             if (clickedTile.type == TileType.RangeUp)
             {
                 players[playerTurn].SetDepth(2);
                 yield return new WaitForSecondsRealtime(Tile.transitionTime);
                 StartCoroutine(ChangePlayerTurn());
+
+                clickedTile.RemovePowerEffect();
             }
             else if (clickedTile.type == TileType.Invert)
             {
@@ -205,8 +213,11 @@ public class GameManager : MonoBehaviour {
                 yield return new WaitForSecondsRealtime(Tile.transitionTime);
                 foreach (var tile in p1Tiles)
                 {
-                    tile.ChangeTo(players[playerTurn ^ 1]); //XOR to flip 1 and 0
-                    players[playerTurn ^ 1].AddTile(tile);
+                    if (tile != clickedTile)
+                    {
+                        tile.ChangeTo(players[playerTurn ^ 1]); //XOR to flip 1 and 0
+                        players[playerTurn ^ 1].AddTile(tile);
+                    }
                 }
 
                 foreach (var tile in p2Tiles)
@@ -218,15 +229,17 @@ public class GameManager : MonoBehaviour {
                 players[playerTurn ^ 1].GetTiles().IntersectWith(p1Tiles);
                 yield return new WaitForSecondsRealtime(Tile.transitionTime);
                 StartCoroutine(ChangePlayerTurn());
+
+                clickedTile.RemovePowerEffect();
             }
             else if(clickedTile.type == TileType.Skip)
             {
-                ///Add animation and stuff
-
                 //Change player turn
                 playerTurn ^= 1;
                 yield return new WaitForSecondsRealtime(Tile.transitionTime);
                 StartCoroutine(ChangePlayerTurn());
+
+                clickedTile.RemovePowerEffect();
             }
             else
             {

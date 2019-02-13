@@ -136,4 +136,28 @@ public class Tile : MonoBehaviour
     {
         return owner == -1;
     }
+
+    public void RemovePowerEffect()
+    {
+        ParticleSystem ps = GetComponentInChildren<ParticleSystem>();
+        if (ps)
+        {
+            ps.Stop();
+            StartCoroutine(FadeIcon(transform.GetComponentInChildren<SpriteRenderer>()));
+        }
+    }
+
+    private IEnumerator FadeIcon(SpriteRenderer sr)
+    {
+        float t = 0;
+        float alphaValue = 1;
+        while(sr.color.a > 0)
+        {
+            alphaValue = Mathf.Lerp(1, 0, t);
+            sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, alphaValue);
+            
+            t += Time.deltaTime;
+            yield return null;
+        }
+    }
 }
