@@ -26,6 +26,7 @@ public class GameManager : MonoBehaviour {
     public GameObject rangeUpIcon;
     public GameObject invertIcon;
     public GameObject skipIcon;
+    public GameObject powerParticles;
 
     //Game Logic
     public float difficulty = 0.2f;
@@ -108,6 +109,8 @@ public class GameManager : MonoBehaviour {
         //Assign the rest of the tiles powers
         foreach (Tile tile in pentaTiles)
         {
+            Instantiate(powerParticles, tile.transform.position, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
+
             tile.type = (TileType)Random.Range(3, 6);
 
             //Instantiate icon sprite over the tile
