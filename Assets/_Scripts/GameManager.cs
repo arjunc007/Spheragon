@@ -228,17 +228,14 @@ public class GameManager : MonoBehaviour {
                 yield return new WaitForSecondsRealtime(Tile.transitionTime);
                 StartCoroutine(ChangePlayerTurn());
             }
-            else if (players[playerTurn].Depth() > 1)
-            {
-                //Changes player turn counter at end of coroutine
-                StartCoroutine(ChangeNeighbours(clickedTile, players[playerTurn].Depth()));
-                //If depth >1, reduce by 1
-                players[playerTurn].SetDepth(players[playerTurn].Depth() - 1);
-            }
             else
             {
                 //Changes player turn counter at end of coroutine
                 StartCoroutine(ChangeNeighbours(clickedTile, players[playerTurn].Depth()));
+
+                //If depth >1, reduce by 1
+                if (players[playerTurn].Depth() > 1)
+                    players[playerTurn].SetDepth(players[playerTurn].Depth() - 1);
             }
         }
     }
@@ -279,8 +276,8 @@ public class GameManager : MonoBehaviour {
 
         foreach (Tile neighbour in tile.neighbours)
         {
-            //Do not run for pentagons
-            if (neighbour.type != TileType.Hexagon)
+            //Do not run for pentagons or free tiles
+            if (neighbour.type != TileType.Hexagon || neighbour.IsFree())
                 continue;
 
             //Check if neighbour is empty or owned
