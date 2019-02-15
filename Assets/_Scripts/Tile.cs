@@ -15,7 +15,7 @@ public enum TileType
 public class Tile : MonoBehaviour
 {
     public Material startMat;
-    public AudioClip[] tapSounds;
+    public List<AudioClip> tapSounds;
 
     public static float transitionTime = 0.5f;
     public TileType type;
@@ -70,7 +70,9 @@ public class Tile : MonoBehaviour
     public void ChangeTo(Player player)
     {
         if(GameData.musicOn)
-            AudioSource.PlayClipAtPoint(tapSounds[Random.Range(0, tapSounds.Length)], transform.root.position);
+        {
+                AudioSource.PlayClipAtPoint(tapSounds[Random.Range(0, tapSounds.Count)], transform.root.position);
+        }
 
         owner = player.GetID();
 
@@ -159,5 +161,11 @@ public class Tile : MonoBehaviour
             t += Time.deltaTime;
             yield return null;
         }
+    }
+
+    public void SetTapSound(AudioClip powerTapSound)
+    {
+        tapSounds.Clear();
+        tapSounds.Add(powerTapSound);
     }
 }

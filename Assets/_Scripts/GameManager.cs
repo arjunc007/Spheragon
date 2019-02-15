@@ -20,6 +20,9 @@ public class GameManager : MonoBehaviour {
 
     //UI
     public GameObject pauseMenu;
+    /// <summary>
+    /// Direct parent of winner and loser scores
+    /// </summary>
     public Transform endMenu;
     public GameObject turnIndicator;
     public Transform scoreIndicator;
@@ -27,6 +30,7 @@ public class GameManager : MonoBehaviour {
     public GameObject invertIcon;
     public GameObject skipIcon;
     public GameObject powerParticles;
+    public AudioClip powerTapSound;
 
     //Game Logic
     public float difficulty = 0.2f;
@@ -80,6 +84,7 @@ public class GameManager : MonoBehaviour {
             //Keep penta Tiles separate
             if(tile.type == TileType.Pentagon)
             {
+                tile.SetTapSound(powerTapSound);
                 pentaTiles.Add(tile);
             }
         }
@@ -213,17 +218,28 @@ public class GameManager : MonoBehaviour {
                 yield return new WaitForSecondsRealtime(Tile.transitionTime);
                 foreach (var tile in p1Tiles)
                 {
-                    if (tile != clickedTile)
+                    if (tile != clickedTile && tile.type == TileType.Hexagon )
                     {
                         tile.ChangeTo(players[playerTurn ^ 1]); //XOR to flip 1 and 0
                         players[playerTurn ^ 1].AddTile(tile);
+                    }
+                    else
+                    {
+                        players[playerTurn].AddTile(tile);
                     }
                 }
 
                 foreach (var tile in p2Tiles)
                 {
-                    tile.ChangeTo(players[playerTurn]);
-                    players[playerTurn].AddTile(tile);
+                    if (tile.type == TileType.Hexagon)
+                    {
+                        tile.ChangeTo(players[playerTurn]);
+                        players[playerTurn].AddTile(tile);
+                    }
+                    else
+                    {
+                        players[playerTurn ^ 1].AddTile(tile);
+                    }
                 }
 
                 players[playerTurn ^ 1].GetTiles().IntersectWith(p1Tiles);
@@ -393,7 +409,6 @@ public class GameManager : MonoBehaviour {
         {
             //Do click actions
             Tile clickedTile = GetClickedTile(Input.mousePosition);
-            //Debug.Log(clickedTile);
             StartCoroutine(MakeMove(clickedTile));
 
             if (freeTiles.Count < 1)
@@ -441,7 +456,6 @@ public class GameManager : MonoBehaviour {
         while(flickSpeed.magnitude > 0)
         {
             flickDamping = flickSpeed.magnitude * -flickDeceleration;
-            Debug.Log(flickSpeed.magnitude);
             sphere.Rotate(Vector3.Cross(flickSpeed, Vector3.back), Space.World);
             Vector3 newSpeed = flickSpeed - flickSpeed.normalized * Time.deltaTime * flickDamping;
             if (Vector3.Dot(newSpeed, flickSpeed) > 0)

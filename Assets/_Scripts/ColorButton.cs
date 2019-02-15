@@ -31,10 +31,6 @@ public class ColorButton : MonoBehaviour {
             GameData.playerColor[player] = GetComponent<Image>().color;
             preview.color = GameData.playerColor[player];
         }
-        else
-        {
-            Debug.Log("Color occupied");
-        }
     }
 
     private void OnDisable()

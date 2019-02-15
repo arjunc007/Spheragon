@@ -140,12 +140,10 @@ public class InputManager : MonoBehaviour {
 
         if (initialMousePosition == lastMousePosition)
         {
-            //Debug.Log("Clicked");
             OnClick();
         }
         else
         {
-            //Debug.Log("Drag ended");
             dragSpeed = (deltaPosition) / Time.deltaTime;
             OnDragEnd();
         }
