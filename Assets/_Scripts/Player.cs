@@ -9,6 +9,7 @@ public class Player
     private Color color;
     private HashSet<Tile> ownedTiles = new HashSet<Tile>();
     private int depth = 1;
+    private bool extraTurn = false;
     private bool isAI = false;
 
     public Player(int id, Color c, bool ai = false)
@@ -61,6 +62,16 @@ public class Player
     public void SetDepth(int i)
     {
         depth = i;
+    }
+
+    public bool ExtraTurn()
+    {
+        return extraTurn;
+    }
+
+    public void ExtraTurn(bool b)
+    {
+        extraTurn = b;
     }
 
     public bool IsAI()

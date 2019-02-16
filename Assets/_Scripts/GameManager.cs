@@ -200,28 +200,44 @@ public class GameManager : MonoBehaviour {
         if (clickedTile != null && clickedTile.IsFree())
         {
             pauseClicks = true;
-            clickedTile.ChangeTo(players[playerTurn]);
 
-            players[playerTurn].AddTile(clickedTile);
             //Free tiles are assigned for first time, so don't need to remove from other player lists
             freeTiles.Remove(clickedTile);
 
+            //Give tile to a player
+            //remove power
             //Temp comment for refactoring
             //Power behaviour
             //wait
             //changeturn
-            //remove power
 
             //Give Power
             if (clickedTile.type == TileType.RangeUp)
             {
+                clickedTile.ChangeTo(players[playerTurn]);
+
+                players[playerTurn].AddTile(clickedTile);
+
                 clickedTile.RemovePowerEffect();
                 players[playerTurn].SetDepth(2);
                 yield return new WaitForSecondsRealtime(Tile.transitionTime);
-                StartCoroutine(ChangePlayerTurn());
+
+                if (players[playerTurn].ExtraTurn())
+                {
+                    players[playerTurn].ExtraTurn(false);
+                    pauseClicks = false;
+                }
+                else
+                {
+                    StartCoroutine(ChangePlayerTurn());
+                }
             }
             else if (clickedTile.type == TileType.Invert)
             {
+                clickedTile.ChangeTo(players[playerTurn]);
+
+                players[playerTurn].AddTile(clickedTile);
+
                 clickedTile.RemovePowerEffect();
                 HashSet<Tile> p1Tiles = new HashSet<Tile>(players[playerTurn].GetTiles());
                 HashSet<Tile> p2Tiles = new HashSet<Tile>(players[playerTurn^1].GetTiles());
@@ -255,24 +271,51 @@ public class GameManager : MonoBehaviour {
 
                 players[playerTurn ^ 1].GetTiles().IntersectWith(p1Tiles);
                 yield return new WaitForSecondsRealtime(Tile.transitionTime);
-                StartCoroutine(ChangePlayerTurn());
+
+                if (players[playerTurn].ExtraTurn())
+                {
+                    players[playerTurn].ExtraTurn(false);
+                    pauseClicks = false;
+                }
+                else
+                {
+                    StartCoroutine(ChangePlayerTurn());
+                }
             }
             else if(clickedTile.type == TileType.Skip)
             {
+                clickedTile.ChangeTo(null);
                 clickedTile.RemovePowerEffect();
                 //Change player turn
+                players[playerTurn].ExtraTurn(true);
                 playerTurn ^= 1;
                 yield return new WaitForSecondsRealtime(Tile.transitionTime);
                 StartCoroutine(ChangePlayerTurn());
             }
             else
             {
+                clickedTile.ChangeTo(players[playerTurn]);
+
+                players[playerTurn].AddTile(clickedTile);
+
                 //Changes player turn counter at end of coroutine
-                StartCoroutine(ChangeNeighbours(clickedTile, players[playerTurn].Depth()));
+                yield return StartCoroutine(ChangeNeighbours(clickedTile, players[playerTurn].Depth()));
 
                 //If depth >1, reduce by 1
                 if (players[playerTurn].Depth() > 1)
+                {
                     players[playerTurn].SetDepth(players[playerTurn].Depth() - 1);
+                }
+
+                if(players[playerTurn].ExtraTurn())
+                {
+                    players[playerTurn].ExtraTurn(false);
+                    pauseClicks = false;
+                }
+                else
+                {
+                    StartCoroutine(ChangePlayerTurn());
+                }
             }
         }
     }
@@ -343,9 +386,9 @@ public class GameManager : MonoBehaviour {
         changeNeighbourCount--;
 
         //Increment player turn counter because turn has ended and all neighbours visited
-        if (changeNeighbourCount == 0)
+        while (changeNeighbourCount > 0)
         {
-            StartCoroutine(ChangePlayerTurn());
+            yield return null;
         }
     }
 
@@ -395,6 +438,21 @@ public class GameManager : MonoBehaviour {
         //change turn & color
         playerTurn ^= 1;
         turnIndicator.GetComponentInChildren<Image>().color = players[playerTurn].GetColor();
+
+        if (players[playerTurn].Depth() > 1)
+        {
+            powerIndicator.GetChild(2).GetComponent<Image>().sprite = rangeUpImage;
+            powerIndicator.GetChild(1).GetComponent<Image>().color = players[playerTurn].GetColor();
+            powerIndicator.gameObject.SetActive(true);
+        }
+        else if(players[playerTurn].ExtraTurn())
+        {
+            powerIndicator.GetChild(2).GetComponent<Image>().sprite = skipImage;
+            powerIndicator.GetChild(1).GetComponent<Image>().color = players[playerTurn].GetColor();
+            powerIndicator.gameObject.SetActive(true);
+        }
+        else
+            powerIndicator.gameObject.SetActive(false);
 
         //Change text
         turnIndicator.GetComponentInChildren<TextMeshProUGUI>().SetText((playerTurn + 1).ToString());

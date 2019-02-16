@@ -74,9 +74,17 @@ public class Tile : MonoBehaviour
                 AudioSource.PlayClipAtPoint(tapSounds[Random.Range(0, tapSounds.Count)], transform.root.position);
         }
 
-        owner = player.GetID();
+        Color edgeColor;
 
-        Color edgeColor = player.GetColor();
+        if (player != null)
+        {
+            edgeColor = player.GetColor();
+        }
+        else
+        {
+            edgeColor = new Color(0.1f, 0.1f, 0.1f);
+        }
+
 
         material.SetColor("_ToColor", edgeColor);
 
@@ -183,6 +191,7 @@ public class Tile : MonoBehaviour
         }
 
         Destroy(powerIcon.gameObject, 5);
+        Destroy(this);
     }
 
     private IEnumerator FadeIcon(SpriteRenderer sr)
