@@ -25,10 +25,11 @@ public class GameManager : MonoBehaviour {
     /// </summary>
     public Transform endMenu;
     public GameObject turnIndicator;
+    public Transform powerIndicator;
     public Transform scoreIndicator;
-    public GameObject rangeUpIcon;
-    public GameObject invertIcon;
-    public GameObject skipIcon;
+    public Sprite rangeUpImage;
+    public Sprite invertImage;
+    public Sprite skipImage;
     public GameObject powerParticles;
     public AudioClip powerTapSound;
 
@@ -41,6 +42,7 @@ public class GameManager : MonoBehaviour {
     /// number of instances of changeneighbour currently running
     /// </summary>
     private int changeNeighbourCount = 0;
+    private new Camera camera;
     private float zoomedRotSpeed;
     private float initialFoV;
     private Vector3 flickSpeed;
@@ -60,6 +62,7 @@ public class GameManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+        camera = Camera.main;
         InputManager.instance.ClickedEvent += OnClick;
         InputManager.instance.DraggingEvent += OnDrag;
         InputManager.instance.DragEndEvent += OnDragEnd;
@@ -114,22 +117,30 @@ public class GameManager : MonoBehaviour {
         //Assign the rest of the tiles powers
         foreach (Tile tile in pentaTiles)
         {
+            //Aattach particles
             Instantiate(powerParticles, tile.transform.position, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
 
             tile.type = (TileType)Random.Range(3, 6);
 
             //Instantiate icon sprite over the tile
-            if(tile.type == TileType.Invert)
-            {
-                Instantiate(invertIcon, tile.transform.position + tile.GetNormal() * 0.01f, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
+            GameObject powerIcon = new GameObject("Icon");
+            powerIcon.transform.position = tile.transform.position + tile.GetNormal() * 0.01f;
+            powerIcon.transform.rotation = Quaternion.LookRotation(tile.GetNormal(), Vector3.up);
+            powerIcon.transform.localScale *= 0.2f;
+            powerIcon.transform.parent = tile.transform;
+            SpriteRenderer sr = powerIcon.AddComponent<SpriteRenderer>();
+
+            if (tile.type == TileType.Invert)
+            { 
+                sr.sprite = invertImage;
             }
             else if(tile.type == TileType.RangeUp)
             {
-                Instantiate(rangeUpIcon, tile.transform.position + tile.GetNormal() * 0.01f, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
+                sr.sprite = rangeUpImage;
             }
             else if(tile.type == TileType.Skip)
             {
-                Instantiate(skipIcon, tile.transform.position + tile.GetNormal() * 0.01f, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
+                sr.sprite = skipImage;
             }
         }
 
@@ -143,7 +154,7 @@ public class GameManager : MonoBehaviour {
         }
 
         zoomedRotSpeed = dragSpeed;
-        initialFoV = Camera.main.fieldOfView;
+        initialFoV = camera.fieldOfView;
 
         //Initialise turn and score indicators
         turnIndicator.GetComponentInChildren<Image>().color = players[playerTurn].GetColor();
@@ -173,7 +184,7 @@ public class GameManager : MonoBehaviour {
 
     private Tile GetClickedTile(Vector3 mousePosition)
     {
-        Ray ray = Camera.main.ScreenPointToRay(mousePosition);
+        Ray ray = camera.ScreenPointToRay(mousePosition);
         RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit))
@@ -204,14 +215,14 @@ public class GameManager : MonoBehaviour {
             //Give Power
             if (clickedTile.type == TileType.RangeUp)
             {
+                clickedTile.RemovePowerEffect();
                 players[playerTurn].SetDepth(2);
                 yield return new WaitForSecondsRealtime(Tile.transitionTime);
                 StartCoroutine(ChangePlayerTurn());
-
-                clickedTile.RemovePowerEffect();
             }
             else if (clickedTile.type == TileType.Invert)
             {
+                clickedTile.RemovePowerEffect();
                 HashSet<Tile> p1Tiles = new HashSet<Tile>(players[playerTurn].GetTiles());
                 HashSet<Tile> p2Tiles = new HashSet<Tile>(players[playerTurn^1].GetTiles());
                 players[playerTurn].GetTiles().Clear();
@@ -245,17 +256,14 @@ public class GameManager : MonoBehaviour {
                 players[playerTurn ^ 1].GetTiles().IntersectWith(p1Tiles);
                 yield return new WaitForSecondsRealtime(Tile.transitionTime);
                 StartCoroutine(ChangePlayerTurn());
-
-                clickedTile.RemovePowerEffect();
             }
             else if(clickedTile.type == TileType.Skip)
             {
+                clickedTile.RemovePowerEffect();
                 //Change player turn
                 playerTurn ^= 1;
                 yield return new WaitForSecondsRealtime(Tile.transitionTime);
                 StartCoroutine(ChangePlayerTurn());
-
-                clickedTile.RemovePowerEffect();
             }
             else
             {
@@ -441,7 +449,6 @@ public class GameManager : MonoBehaviour {
 
     public void OnPinch(float diff)
     {
-        Camera camera = Camera.main;
         //Change the field of view based on the change in distance between the touches.
         camera.fieldOfView += diff * perspectiveZoomSpeed;
 

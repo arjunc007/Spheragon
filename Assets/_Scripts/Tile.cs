@@ -145,8 +145,44 @@ public class Tile : MonoBehaviour
         if (ps)
         {
             ps.Stop();
-            StartCoroutine(FadeIcon(transform.GetComponentInChildren<SpriteRenderer>()));
+            StartCoroutine(TranslateAndScale(transform.GetComponentInChildren<SpriteRenderer>().transform));
         }
+    }
+
+    IEnumerator TranslateAndScale(Transform powerIcon)
+    {
+        powerIcon.SetParent(null);
+
+        Quaternion startRot = powerIcon.rotation;
+        Quaternion endRot = Quaternion.LookRotation(Vector3.back);
+
+        Vector3 startPos = powerIcon.position;
+        Vector3 endPos = new Vector3(0, 0, -13);
+
+        float animTime = 0, speed = 2;
+        //Speed in pixel/second
+        while (powerIcon.position.z != -13)
+        {
+            powerIcon.position = Vector3.Lerp(startPos, endPos, speed * animTime);
+            powerIcon.rotation = Quaternion.Lerp(startRot, endRot, speed * animTime);
+            animTime += Time.deltaTime;
+            yield return null;
+        }
+
+        yield return new WaitForSecondsRealtime(0.5f);
+
+        endPos.Set(10, 10, -13);
+        speed = 5;
+        animTime = 0;
+
+        while (powerIcon.position != endPos)
+        {
+            powerIcon.position = Vector3.Lerp(startPos, endPos, speed * animTime);
+            animTime += Time.deltaTime;
+            yield return null;
+        }
+
+        Destroy(powerIcon.gameObject, 5);
     }
 
     private IEnumerator FadeIcon(SpriteRenderer sr)
