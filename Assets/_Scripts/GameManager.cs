@@ -115,12 +115,14 @@ public class GameManager : MonoBehaviour {
         pentaTiles.Remove(p2Tile);
 
         //Assign the rest of the tiles powers
-        foreach (Tile tile in pentaTiles)
-        {
-            //Aattach particles
-            Instantiate(powerParticles, tile.transform.position, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
+        int numInverts = 2, numSkips = 5, numRange = 3;
 
-            tile.type = (TileType)Random.Range(3, 6);
+        Debug.Log(pentaTiles.Count);
+
+        while(pentaTiles.Count > 0)
+        {
+            //Get a random Tile
+            Tile tile = pentaTiles[Random.Range(0, pentaTiles.Count)];
 
             //Instantiate icon sprite over the tile
             GameObject powerIcon = new GameObject("Icon");
@@ -130,18 +132,34 @@ public class GameManager : MonoBehaviour {
             powerIcon.transform.parent = tile.transform;
             SpriteRenderer sr = powerIcon.AddComponent<SpriteRenderer>();
 
-            if (tile.type == TileType.Invert)
-            { 
+            if (numInverts > 0)
+            {
+                tile.type = TileType.Invert;
                 sr.sprite = invertImage;
+                numInverts--;
             }
-            else if(tile.type == TileType.RangeUp)
+            else if(numSkips > 0)
             {
-                sr.sprite = rangeUpImage;
-            }
-            else if(tile.type == TileType.Skip)
-            {
+                tile.type = TileType.Skip;
                 sr.sprite = skipImage;
+                numSkips--;
             }
+            else if(numRange > 0)
+            {
+                tile.type = TileType.RangeUp;
+                sr.sprite = rangeUpImage;
+                numRange--;
+            }
+            else
+            {
+                Debug.Log("More tiles than power types. Bailing!");
+                break;
+            }
+
+            //Attach particles
+            Instantiate(powerParticles, tile.transform.position, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
+
+            pentaTiles.Remove(tile);
         }
 
         isPaused = false;
