@@ -2,6 +2,7 @@
 
 public class InputManager : MonoBehaviour {
 
+    public float touchSensitivity = 0.1f;
     public static InputManager instance = null;
     private Vector2 dragSpeed;
 
@@ -138,13 +139,13 @@ public class InputManager : MonoBehaviour {
             return;
         }
 
-        if (initialMousePosition == lastMousePosition)
+        if (Vector3.Distance(initialMousePosition, lastMousePosition) < touchSensitivity)
         {
             OnClick();
         }
         else
         {
-            dragSpeed = (deltaPosition) / Time.deltaTime;
+            dragSpeed = (deltaPosition) * Time.deltaTime;
             OnDragEnd();
         }
     }

@@ -79,6 +79,7 @@ public class Tile : MonoBehaviour
         if (player != null)
         {
             edgeColor = player.GetColor();
+            owner = player.GetID();
         }
         else
         {

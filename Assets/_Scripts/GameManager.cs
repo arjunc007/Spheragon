@@ -117,8 +117,6 @@ public class GameManager : MonoBehaviour {
         //Assign the rest of the tiles powers
         int numInverts = 2, numSkips = 5, numRange = 3;
 
-        Debug.Log(pentaTiles.Count);
-
         while(pentaTiles.Count > 0)
         {
             //Get a random Tile
