@@ -15,8 +15,7 @@ public class GameManager : MonoBehaviour {
     public float aiRotSpeed = 5;
     public float maxFoV, minFoV;
     public float perspectiveZoomSpeed = 5;
-    public float flickDeceleration = 5;
-    private float flickDamping;
+    public float flickThreshold = 0.5f;
 
     //UI
     public GameObject pauseMenu;
@@ -241,7 +240,10 @@ public class GameManager : MonoBehaviour {
                 if (players[playerTurn].ExtraTurn())
                 {
                     players[playerTurn].ExtraTurn(false);
-                    pauseClicks = false;
+
+                    //Play second move for AI
+                    if (players[playerTurn].IsAI())
+                        StartCoroutine(PlayTile());
                 }
                 else
                 {
@@ -291,7 +293,10 @@ public class GameManager : MonoBehaviour {
                 if (players[playerTurn].ExtraTurn())
                 {
                     players[playerTurn].ExtraTurn(false);
-                    pauseClicks = false;
+
+                    //Play second move for AI
+                    if (players[playerTurn].IsAI())
+                        StartCoroutine(PlayTile());
                 }
                 else
                 {
@@ -326,13 +331,18 @@ public class GameManager : MonoBehaviour {
                 if(players[playerTurn].ExtraTurn())
                 {
                     players[playerTurn].ExtraTurn(false);
-                    pauseClicks = false;
+
+                    //Play second move for AI
+                    if (players[playerTurn].IsAI())
+                        StartCoroutine(PlayTile());
                 }
                 else
                 {
                     StartCoroutine(ChangePlayerTurn());
                 }
             }
+
+            pauseClicks = false;
         }
     }
 
@@ -410,8 +420,6 @@ public class GameManager : MonoBehaviour {
 
     private IEnumerator ChangePlayerTurn()
     {
-        pauseClicks = false;
-
         StartCoroutine(ChangeScoreUI());
         yield return StartCoroutine(ChangeTurnUI());
 
@@ -504,7 +512,7 @@ public class GameManager : MonoBehaviour {
     public void OnDrag(Vector3 diff)
     {
         flickSpeed = Vector3.zero;
-        if (!(isPaused ||pauseClicks))
+        if (!(isPaused || pauseClicks))
         {
             Vector3 axis = Vector3.Cross(diff, Vector3.forward).normalized;
 
@@ -514,9 +522,10 @@ public class GameManager : MonoBehaviour {
 
     public void OnDragEnd(Vector3 speed)
     {
-        if(!pauseClicks  && speed.magnitude > 500)
+        if(!pauseClicks  && speed.magnitude > flickThreshold)
         {
-            flickSpeed = speed * dragSpeed;
+            flickSpeed = speed.normalized * dragSpeed;
+
             StartCoroutine(KeepRotating());
         }
     }
@@ -536,9 +545,8 @@ public class GameManager : MonoBehaviour {
     {
         while(flickSpeed.magnitude > 0)
         {
-            flickDamping = flickSpeed.magnitude * -flickDeceleration;
-            sphere.Rotate(Vector3.Cross(flickSpeed, Vector3.back), Space.World);
-            Vector3 newSpeed = flickSpeed - flickSpeed.normalized * Time.deltaTime * flickDamping;
+            sphere.Rotate(Vector3.Cross(flickSpeed, Vector3.forward), Space.World);
+            Vector3 newSpeed = flickSpeed - flickSpeed * Time.deltaTime;
             if (Vector3.Dot(newSpeed, flickSpeed) > 0)
                 flickSpeed = newSpeed;
             else

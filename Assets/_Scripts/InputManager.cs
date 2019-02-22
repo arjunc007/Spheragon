@@ -13,7 +13,10 @@ public class InputManager : MonoBehaviour {
     private Vector3 currentMousePosition;
     private float pinchDiff;
 
-    Camera cam;
+    private Camera cam;
+    /// <summary>
+    /// For when the player returns from Pause, ignore the first input, i.e. the touch that Disabled the pause
+    /// </summary>
     private bool wasPaused = false;
 
     //Events and Delegates
@@ -70,6 +73,7 @@ public class InputManager : MonoBehaviour {
                             break;
                         case TouchPhase.Ended:
                             EndInput(touch.deltaPosition * Time.deltaTime / touch.deltaTime);
+                            lastMousePosition = touch.position;
                             break;
                     }
                 }

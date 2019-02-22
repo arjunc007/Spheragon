@@ -11,7 +11,7 @@ public class ColorButton : MonoBehaviour {
 
     private void Start()
     {
-        preview = transform.parent.parent.GetChild(0).GetComponent<Image>();
+        preview = transform.parent.parent.GetChild(1).GetComponent<Image>();
         if(preview)
             preview.color = GameData.playerColor[playerID];
     }

@@ -86,4 +86,26 @@ public class MenuScript : MonoBehaviour {
                 GameManager.instance.PauseGame();
         }
     }
+
+    public void SlideOut_Left(RectTransform obj)
+    {
+        StopAllCoroutines();
+        StartCoroutine(SlideOut(obj));
+    }
+
+    private IEnumerator SlideOut(RectTransform obj)
+    {
+        RectOffset padding = obj.GetComponent<HorizontalLayoutGroup>().padding;
+        int initialPadding = padding.left;
+        int finalPadding = initialPadding > 0 ? 0 : 250;
+        float t = 0;
+
+        while (padding.left != finalPadding)
+            {
+                t += Time.deltaTime / 0.1f;
+                padding.left = (int) Mathf.Lerp(initialPadding, finalPadding, t);
+                LayoutRebuilder.ForceRebuildLayoutImmediate(obj);
+                yield return null;
+            }
+    }
 }
