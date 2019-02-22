@@ -79,26 +79,27 @@ public class InputManager : MonoBehaviour {
                 }
                 else if (Input.touchCount == 2)
                 {
-                        // Store both touches.
-                        Touch touchZero = Input.GetTouch(0);
-                        Touch touchOne = Input.GetTouch(1);
+                    // Store both touches.
+                    Touch touchZero = Input.GetTouch(0);
+                    Touch touchOne = Input.GetTouch(1);
 
-                        // Find the position in the previous frame of each touch.
-                        Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
-                        Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
+                    // Find the position in the previous frame of each touch.
+                    Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
+                    Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
 
-                        // Find the magnitude of the vector (the distance) between the touches in each frame.
-                        float prevTouchDeltaMag = (touchZeroPrevPos - touchOnePrevPos).magnitude;
-                        float touchDeltaMag = (touchZero.position - touchOne.position).magnitude;
+                    // Find the magnitude of the vector (the distance) between the touches in each frame.
+                    float prevTouchDeltaMag = (touchZeroPrevPos - touchOnePrevPos).magnitude;
+                    float touchDeltaMag = (touchZero.position - touchOne.position).magnitude;
 
-                        // Find the difference in the distances between each frame.
-                        pinchDiff = prevTouchDeltaMag - touchDeltaMag;
+                    // Find the difference in the distances between each frame.
+                    pinchDiff = prevTouchDeltaMag - touchDeltaMag;
 
-                        OnPinch();
-                    }
+                    OnPinch();
+                }
 
-                }   //Use Touch
-            else
+            }   //Use Touch
+            
+            if(Input.mousePresent)
             {
                 if (Input.GetMouseButtonDown(0))
                 {

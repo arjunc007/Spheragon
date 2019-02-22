@@ -1,40 +1,35 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class ColorButton : MonoBehaviour {
 
     public int playerID;
     private Image preview;
-    Button button;
+    private Button button;
 
     private void Start()
     {
-        preview = transform.parent.parent.GetChild(1).GetComponent<Image>();
+        preview = transform.GetComponent<Image>();
         if(preview)
-            preview.color = GameData.playerColor[playerID];
+            preview.color = GameData.colorChoices[GameData.playerColorIndex[playerID]];
     }
 
-    private void OnEnable()
+    public void ChangePlayerColor()
     {
-        button = GetComponent<Button>();
-        button.onClick.AddListener(() => ChangePlayerColor(playerID));
-    }
+        //Get player's color
+        int currentColorIndex = GameData.playerColorIndex[playerID];
 
-    private void ChangePlayerColor(int player)
-    {
-        Color thisColor = GetComponent<Image>().color;
+        //Increment color index
+        currentColorIndex = currentColorIndex + 1 > 4 ? 0 : currentColorIndex + 1;
 
-        if (GameData.playerColor[player ^ 1] != thisColor)
+        //If index of other player is same, increase again
+        if (GameData.playerColorIndex[playerID ^ 1] == currentColorIndex)
         {
-            GameData.playerColor[player] = GetComponent<Image>().color;
-            preview.color = GameData.playerColor[player];
+            currentColorIndex = currentColorIndex + 1 > 4 ? 0 : currentColorIndex + 1;
         }
-    }
 
-    private void OnDisable()
-    {
-        button.onClick.RemoveAllListeners();
+        //Assign color at current index to preview and store in GameData
+        GameData.playerColorIndex[playerID] = currentColorIndex;
+        preview.color = GameData.colorChoices[GameData.playerColorIndex[playerID]];
     }
 }

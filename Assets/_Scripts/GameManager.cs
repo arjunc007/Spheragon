@@ -34,7 +34,7 @@ public class GameManager : MonoBehaviour {
 
     //Game Logic
     public float difficulty = 0.2f;
-    private int playerTurn = 0;
+    private int playerTurn;
     private List<Player> players = new List<Player>();
     private HashSet<Tile> freeTiles = new HashSet<Tile>();
     /// <summary>
@@ -66,15 +66,11 @@ public class GameManager : MonoBehaviour {
         InputManager.instance.DraggingEvent += OnDrag;
         InputManager.instance.DragEndEvent += OnDragEnd;
         InputManager.instance.PinchEvent += OnPinch;
+                  
+        players.Add(new Player(0, GameData.colorChoices[GameData.playerColorIndex[0]]));
+        players.Add(new Player(1, GameData.colorChoices[GameData.playerColorIndex[1]], GameData.isSP));
 
-        //Abstract out to enable choie of colors
-        Color p1Color = Color.red;
-        Color p2Color = Color.blue;
-
-        bool randomiseP1 = Random.value > 0.5f;
-        
-        players.Add(new Player(0, GameData.playerColor[0], GameData.isSP && randomiseP1));
-        players.Add(new Player(1, GameData.playerColor[1], GameData.isSP && !randomiseP1));
+        playerTurn = Random.value > 0.5f ? 1 : 0;
 
         List<Tile> pentaTiles = new List<Tile>();
 

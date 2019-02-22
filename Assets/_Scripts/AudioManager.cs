@@ -10,7 +10,7 @@ public class AudioManager : MonoBehaviour {
     void Start () {
 
         audioSource = GetComponent<AudioSource>();
-         if (!audioSource.playOnAwake && GameData.musicOn)
+        if (!audioSource.playOnAwake && GameData.musicOn)
         {
             audioSource.clip = musicClips[Random.Range(0, musicClips.Length)];
             audioSource.Play();

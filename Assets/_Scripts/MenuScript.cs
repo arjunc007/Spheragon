@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -11,6 +12,12 @@ public class MenuScript : MonoBehaviour {
     public Sprite muteImage;
     public Transform audioButton;
     public GameObject loadingScreen;
+
+
+    private void Awake()
+    {
+        GameData.LoadPlayerPrefs();
+    }
 
     private void Start()
     {
@@ -87,25 +94,13 @@ public class MenuScript : MonoBehaviour {
         }
     }
 
-    public void SlideOut_Left(RectTransform obj)
+    private void OnApplicationPause(bool pause)
     {
-        StopAllCoroutines();
-        StartCoroutine(SlideOut(obj));
+        GameData.SavePlayerPrefs();
     }
 
-    private IEnumerator SlideOut(RectTransform obj)
+    private void OnApplicationQuit()
     {
-        RectOffset padding = obj.GetComponent<HorizontalLayoutGroup>().padding;
-        int initialPadding = padding.left;
-        int finalPadding = initialPadding > 0 ? 0 : 250;
-        float t = 0;
-
-        while (padding.left != finalPadding)
-            {
-                t += Time.deltaTime / 0.1f;
-                padding.left = (int) Mathf.Lerp(initialPadding, finalPadding, t);
-                LayoutRebuilder.ForceRebuildLayoutImmediate(obj);
-                yield return null;
-            }
+        GameData.SavePlayerPrefs();
     }
 }
