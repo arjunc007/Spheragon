@@ -7,7 +7,8 @@ using TMPro;
 public class GameManager : MonoBehaviour {
 
     public static GameManager instance = null;
-    public Transform sphere;
+    public GameObject SphereGrid;
+    private Transform sphere;
     public float dragSpeed = 5;             //Spped of dragging action
     public static float TileRadius = 1.0f;  //Find neighbours in Tile
     public float computerWaitTime = 0.5f;
@@ -78,11 +79,18 @@ public class GameManager : MonoBehaviour {
         playerTurn = Random.value > 0.5f ? 1 : 0;
 
         HUD.gameObject.SetActive(true);
-        sphere.gameObject.SetActive(true);
+        sphere = Instantiate(SphereGrid).transform;
 
         List<Tile> pentaTiles = new List<Tile>();
 
         Tile[] tiles = FindObjectsOfType<Tile>();
+
+        if (tiles == null)
+        {
+            Debug.Log("No tiles available");
+            return;
+        }
+
         foreach (Tile tile in tiles)
         {
             tile.Initialise();
@@ -190,7 +198,7 @@ public class GameManager : MonoBehaviour {
     {
         isPaused = !isPaused;
         pauseClicks = !pauseClicks;
-        MenuScript.instance.TogglePauseMenu(isPaused); HUD.gameObject.SetActive(true);
+        MenuScript.instance.TogglePauseMenu(isPaused);
     }
 
     private Tile GetClickedTile(Vector3 mousePosition)
@@ -607,6 +615,26 @@ public class GameManager : MonoBehaviour {
 
     public void RestartGame()
     {
+        StopAllCoroutines();
+        players.Clear();
+        freeTiles.Clear();
+        StartCoroutine(Reset());
+    }
+
+    private IEnumerator Reset()
+    {
+        Destroy(sphere.gameObject);
+        MenuScript.instance.TogglePauseMenu(false);
+
+        while (sphere != null)
+        {
+            if (sphere == null)
+                Debug.Log("sphere null");
+            else if (sphere.gameObject == null)
+                Debug.Log("GO null");
+            yield return null;
+        }
+
         Initialise(SPGame);
     }
 }
