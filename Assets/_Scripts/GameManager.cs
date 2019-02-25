@@ -70,7 +70,9 @@ public class GameManager : MonoBehaviour {
     }
 
     // Use this for initialization
-    public void Initialise (bool isSP) {
+    public void Initialise (bool isSP)
+    {
+        players.Clear();
 
         SPGame = isSP;
         players.Add(new Player(0, GameData.colorChoices[GameData.playerColorIndex[0]]));
@@ -84,6 +86,8 @@ public class GameManager : MonoBehaviour {
         List<Tile> pentaTiles = new List<Tile>();
 
         Tile[] tiles = FindObjectsOfType<Tile>();
+
+        freeTiles.Clear();
 
         if (tiles == null)
         {
@@ -615,23 +619,26 @@ public class GameManager : MonoBehaviour {
 
     public void RestartGame()
     {
-        StopAllCoroutines();
-        players.Clear();
-        freeTiles.Clear();
+        ClearScene();
+        MenuScript.instance.TogglePauseMenu(false);
         StartCoroutine(Reset());
+    }
+
+    public void ClearScene()
+    {
+        var icons = FindObjectsOfType<SpriteRenderer>();
+        foreach (var icon in icons)
+            Destroy(icon.gameObject);
+        StopAllCoroutines();
+        HUD.gameObject.SetActive(false);
+        Destroy(sphere.gameObject);
     }
 
     private IEnumerator Reset()
     {
-        Destroy(sphere.gameObject);
-        MenuScript.instance.TogglePauseMenu(false);
-
         while (sphere != null)
         {
-            if (sphere == null)
-                Debug.Log("sphere null");
-            else if (sphere.gameObject == null)
-                Debug.Log("GO null");
+            Debug.Log("Waiting to destroy");
             yield return null;
         }
 

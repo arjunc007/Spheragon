@@ -5,11 +5,14 @@ using TMPro;
 public class MenuScript : MonoBehaviour {
     public static MenuScript instance;
 
+    public Transform modeSelect;
     public Sprite audioImage;
     public Sprite muteImage;
     public Transform audioButton;
     public Transform mainMenu;
     public Transform pauseMenu;
+    private GameObject pauseMenuBackground;
+    private GameObject title;
 
     private void Awake()
     {
@@ -32,6 +35,10 @@ public class MenuScript : MonoBehaviour {
             audioButton.GetComponent<Image>().sprite = audioImage;
         else
             audioButton.GetComponent<Image>().sprite = muteImage;
+
+        title = mainMenu.parent.parent.GetComponentInChildren<TextMeshProUGUI>().gameObject;
+        pauseMenuBackground = pauseMenu.parent.parent.GetComponentInChildren<Image>().gameObject;
+        pauseMenuBackground.SetActive(false);
     }
 
     // Update is called once per frame
@@ -44,12 +51,13 @@ public class MenuScript : MonoBehaviour {
 
     public void StartGame(bool singlePlayer)
     {
-        //Deactivate mainmenuUI, title
+        //Deactivate mainmenuUI, title, mode Select
         mainMenu.gameObject.SetActive(false);
-        mainMenu.parent.parent.GetComponentInChildren<TextMeshProUGUI>().gameObject.SetActive(false);
+        title.SetActive(false);
+        modeSelect.gameObject.SetActive(false);
         //Activate pausemenuUI, background
         pauseMenu.gameObject.SetActive(true);
-        pauseMenu.parent.parent.GetComponentInChildren<Image>().gameObject.SetActive(true);
+        pauseMenuBackground.SetActive(true);
         //Deactivate parent containing all menus(MenuSystem)
         pauseMenu.parent.parent.gameObject.SetActive(false);
 
@@ -64,11 +72,29 @@ public class MenuScript : MonoBehaviour {
 
     public void GoToMenu()
     {
+        //Destoy game Data (Reset Game, but don't call Initialise again)
+        GameManager.instance.ClearScene();
+
+        //Activate mainmenuUI, title
+        mainMenu.gameObject.SetActive(true);
+        title.SetActive(true);
+        
+        //Dectivate pausemenuUI, background
+        pauseMenu.gameObject.SetActive(false);
+        pauseMenuBackground.SetActive(false);
+
+        //Activate parent containing all menus(MenuSystem)
+        pauseMenu.parent.parent.gameObject.SetActive(true);
     }
 
     public void TogglePauseMenu(bool isPaused)
     {
         pauseMenu.parent.parent.gameObject.SetActive(isPaused);
+    }
+
+    public void ToggleModes()
+    {
+        modeSelect.gameObject.SetActive(!modeSelect.gameObject.activeSelf);
     }
 
     public void ToggleAudio()
