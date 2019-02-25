@@ -7,7 +7,6 @@ public static class GameData {
                                             new Color(0.1019608f, 0.4705883f, 0.8392158f),
                                             new Color(0f, 0.6392157f, 0.2862745f),
                                             new Color(0.9686275f, 0.854902f, 0.3607843f)};
-    public static bool isSP = false;
     public static bool musicOn = true;
     //Red = (242, 53, 68), Blue = (26, 120, 214) Divide by 255
     public static int[] playerColorIndex = { 0, 2 };

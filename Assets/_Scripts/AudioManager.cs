@@ -3,8 +3,24 @@ using UnityEngine.SceneManagement;
 
 public class AudioManager : MonoBehaviour {
 
-    public AudioClip[] musicClips;
+    public static AudioManager instance;
+
+    public AudioClip menuMusicClip;
+    public AudioClip[] gameMusicClips;
     private AudioSource audioSource;
+
+    private void Awake()
+    {
+        if(instance != null)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+    }
 
     // Use this for initialization
     void Start () {
@@ -12,7 +28,10 @@ public class AudioManager : MonoBehaviour {
         audioSource = GetComponent<AudioSource>();
         if (!audioSource.playOnAwake && GameData.musicOn)
         {
-            audioSource.clip = musicClips[Random.Range(0, musicClips.Length)];
+            if (GameManager.instance.pauseMenu.gameObject.activeSelf)
+                audioSource.clip = gameMusicClips[Random.Range(0, gameMusicClips.Length)];
+            else
+                audioSource.clip = menuMusicClip;
             audioSource.Play();
         }
 	}
@@ -21,7 +40,10 @@ public class AudioManager : MonoBehaviour {
 	void Update () {
 		if(!audioSource.isPlaying && GameData.musicOn)
         {
-            audioSource.clip = musicClips[Random.Range(0, musicClips.Length)];
+            if (GameManager.instance.pauseMenu.gameObject.activeSelf)
+                audioSource.clip = gameMusicClips[Random.Range(0, gameMusicClips.Length)];
+            else
+                audioSource.clip = menuMusicClip;
             audioSource.Play();
         }
 	}

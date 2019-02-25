@@ -16,7 +16,7 @@ public class MenuScript : MonoBehaviour {
 
     private void Awake()
     {
-        GameData.LoadPlayerPrefs();
+        //GameData.LoadPlayerPrefs();
     }
 
     private void Start()
@@ -37,8 +37,11 @@ public class MenuScript : MonoBehaviour {
 
     public void StartGame(bool singlePlayer)
     {
-        GameData.isSP = singlePlayer;
-        StartCoroutine(LoadScene(gameScene));
+        //Deactivate mainmenuUI
+        //Activate pausemenuUI
+        GameManager.instance.Initialise(singlePlayer);
+            //Make icosahedron visible
+
     }
 
     private IEnumerator LoadScene(string scene)
@@ -71,6 +74,8 @@ public class MenuScript : MonoBehaviour {
             audioButton.GetComponent<Image>().sprite = audioImage;
         else
             audioButton.GetComponent<Image>().sprite = muteImage;
+
+        AudioManager.instance.ToggleMusic();
     }
 
     public void PlayTapSound()

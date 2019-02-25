@@ -18,12 +18,13 @@ public class GameManager : MonoBehaviour {
     public float flickThreshold = 0.5f;
 
     //UI
-    public GameObject pauseMenu;
+    public Transform pauseMenu;
+    public Transform mainMenu;
     /// <summary>
     /// Direct parent of winner and loser scores
     /// </summary>
     public Transform endMenu;
-    public GameObject turnIndicator;
+    public Transform turnIndicator;
     public Transform powerIndicator;
     public Transform scoreIndicator;
     public Sprite rangeUpImage;
@@ -48,8 +49,8 @@ public class GameManager : MonoBehaviour {
 
     //Game States
     [HideInInspector]
-    public static bool isPaused;
-    private bool pauseClicks;
+    public static bool isPaused = true;
+    private bool pauseClicks = true;
 
     private void Awake()
     {
@@ -59,16 +60,20 @@ public class GameManager : MonoBehaviour {
             Destroy(this);
     }
 
-    // Use this for initialization
-    void Start () {
+    private void Start()
+    {
         camera = Camera.main;
         InputManager.instance.ClickedEvent += OnClick;
         InputManager.instance.DraggingEvent += OnDrag;
         InputManager.instance.DragEndEvent += OnDragEnd;
         InputManager.instance.PinchEvent += OnPinch;
+    }
+
+    // Use this for initialization
+    public void Initialise (bool isSP) {
                   
         players.Add(new Player(0, GameData.colorChoices[GameData.playerColorIndex[0]]));
-        players.Add(new Player(1, GameData.colorChoices[GameData.playerColorIndex[1]], GameData.isSP));
+        players.Add(new Player(1, GameData.colorChoices[GameData.playerColorIndex[1]], isSP));
 
         playerTurn = Random.value > 0.5f ? 1 : 0;
 
@@ -185,11 +190,11 @@ public class GameManager : MonoBehaviour {
 
         if(isPaused)
         {
-            pauseMenu.SetActive(true);
+            pauseMenu.gameObject.SetActive(true);
         }
         else
         {
-            pauseMenu.SetActive(false);
+            pauseMenu.gameObject.SetActive(false);
         }
     }
 
@@ -346,7 +351,7 @@ public class GameManager : MonoBehaviour {
     {
         yield return new WaitForSecondsRealtime(2 * Tile.transitionTime);
 
-        Transform uiCanvas = pauseMenu.transform.parent;
+        Transform uiCanvas = pauseMenu.parent;
         //Show final score
         for (int i = 1; i < uiCanvas.childCount; i++)
             uiCanvas.GetChild(i).gameObject.SetActive(false);
@@ -477,12 +482,12 @@ public class GameManager : MonoBehaviour {
         //Change text
         turnIndicator.GetComponentInChildren<TextMeshProUGUI>().SetText((playerTurn + 1).ToString());
         //rotate rest of the way
-        startRot = turnIndicator.transform.GetChild(0).rotation;
+        startRot = turnIndicator.GetChild(0).rotation;
         endRot = startRot * Quaternion.Euler(0, 90, 0);
         dt = 0;
-        while (turnIndicator.transform.GetChild(0).rotation != endRot)
+        while (turnIndicator.GetChild(0).rotation != endRot)
         {
-            turnIndicator.transform.GetChild(0).rotation = Quaternion.Lerp(startRot, endRot, dt / 0.1f);
+            turnIndicator.GetChild(0).rotation = Quaternion.Lerp(startRot, endRot, dt / 0.1f);
             dt += Time.deltaTime;
             yield return null;
         }
@@ -496,7 +501,6 @@ public class GameManager : MonoBehaviour {
             //Do click actions
             Tile clickedTile = GetClickedTile(Input.mousePosition);
             StartCoroutine(MakeMove(clickedTile));
-
             if (freeTiles.Count < 1)
             {
                 StartCoroutine(EndGame());
