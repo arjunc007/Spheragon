@@ -31,5 +31,8 @@ public class ColorButton : MonoBehaviour {
         //Assign color at current index to preview and store in GameData
         GameData.playerColorIndex[playerID] = currentColorIndex;
         preview.color = GameData.colorChoices[GameData.playerColorIndex[playerID]];
+
+        string prefName = "P" + (playerID + 1).ToString() + "Color";
+        PlayerPrefs.SetInt(prefName, GameData.playerColorIndex[playerID]);
     }
 }

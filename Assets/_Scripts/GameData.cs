@@ -13,8 +13,6 @@ public static class GameData {
 
     public static void SavePlayerPrefs()
     {
-        PlayerPrefs.SetInt("P1Color", playerColorIndex[0]);
-        PlayerPrefs.SetInt("P2Color", playerColorIndex[1]);
         PlayerPrefs.Save();
     }
 

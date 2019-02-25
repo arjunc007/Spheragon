@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 
@@ -18,8 +17,7 @@ public class GameManager : MonoBehaviour {
     public float flickThreshold = 0.5f;
 
     //UI
-    public Transform pauseMenu;
-    public Transform mainMenu;
+    public Transform HUD;
     /// <summary>
     /// Direct parent of winner and loser scores
     /// </summary>
@@ -49,6 +47,7 @@ public class GameManager : MonoBehaviour {
 
     //Game States
     [HideInInspector]
+    bool SPGame;
     public static bool isPaused = true;
     private bool pauseClicks = true;
 
@@ -71,11 +70,15 @@ public class GameManager : MonoBehaviour {
 
     // Use this for initialization
     public void Initialise (bool isSP) {
-                  
+
+        SPGame = isSP;
         players.Add(new Player(0, GameData.colorChoices[GameData.playerColorIndex[0]]));
         players.Add(new Player(1, GameData.colorChoices[GameData.playerColorIndex[1]], isSP));
 
         playerTurn = Random.value > 0.5f ? 1 : 0;
+
+        HUD.gameObject.SetActive(true);
+        sphere.gameObject.SetActive(true);
 
         List<Tile> pentaTiles = new List<Tile>();
 
@@ -187,15 +190,7 @@ public class GameManager : MonoBehaviour {
     {
         isPaused = !isPaused;
         pauseClicks = !pauseClicks;
-
-        if(isPaused)
-        {
-            pauseMenu.gameObject.SetActive(true);
-        }
-        else
-        {
-            pauseMenu.gameObject.SetActive(false);
-        }
+        MenuScript.instance.TogglePauseMenu(isPaused); HUD.gameObject.SetActive(true);
     }
 
     private Tile GetClickedTile(Vector3 mousePosition)
@@ -345,13 +340,18 @@ public class GameManager : MonoBehaviour {
 
             pauseClicks = false;
         }
+
+        if (freeTiles.Count < 1)
+        {
+            StartCoroutine(EndGame());
+        }
     }
 
     private IEnumerator EndGame()
     {
         yield return new WaitForSecondsRealtime(2 * Tile.transitionTime);
 
-        Transform uiCanvas = pauseMenu.parent;
+        Transform uiCanvas = HUD.parent;
         //Show final score
         for (int i = 1; i < uiCanvas.childCount; i++)
             uiCanvas.GetChild(i).gameObject.SetActive(false);
@@ -501,10 +501,6 @@ public class GameManager : MonoBehaviour {
             //Do click actions
             Tile clickedTile = GetClickedTile(Input.mousePosition);
             StartCoroutine(MakeMove(clickedTile));
-            if (freeTiles.Count < 1)
-            {
-                StartCoroutine(EndGame());
-            }
         }
     }
 
@@ -611,6 +607,6 @@ public class GameManager : MonoBehaviour {
 
     public void RestartGame()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        Initialise(SPGame);
     }
 }

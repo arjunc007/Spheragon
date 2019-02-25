@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class AudioManager : MonoBehaviour {
 
@@ -28,7 +27,7 @@ public class AudioManager : MonoBehaviour {
         audioSource = GetComponent<AudioSource>();
         if (!audioSource.playOnAwake && GameData.musicOn)
         {
-            if (GameManager.instance.pauseMenu.gameObject.activeSelf)
+            if (MenuScript.instance.pauseMenu.gameObject.activeSelf)
                 audioSource.clip = gameMusicClips[Random.Range(0, gameMusicClips.Length)];
             else
                 audioSource.clip = menuMusicClip;
@@ -40,7 +39,7 @@ public class AudioManager : MonoBehaviour {
 	void Update () {
 		if(!audioSource.isPlaying && GameData.musicOn)
         {
-            if (GameManager.instance.pauseMenu.gameObject.activeSelf)
+            if (MenuScript.instance.pauseMenu.gameObject.activeSelf)
                 audioSource.clip = gameMusicClips[Random.Range(0, gameMusicClips.Length)];
             else
                 audioSource.clip = menuMusicClip;

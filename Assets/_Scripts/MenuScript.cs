@@ -1,21 +1,28 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class MenuScript : MonoBehaviour {
+    public static MenuScript instance;
 
-    public string gameScene = "Game";
-    public string menuScene = "Main Menu";
     public Sprite audioImage;
     public Sprite muteImage;
     public Transform audioButton;
-    public GameObject loadingScreen;
-
+    public Transform mainMenu;
+    public Transform pauseMenu;
 
     private void Awake()
     {
+        if(instance != null)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+
         GameData.LoadPlayerPrefs();
     }
 
@@ -37,23 +44,17 @@ public class MenuScript : MonoBehaviour {
 
     public void StartGame(bool singlePlayer)
     {
-        //Deactivate mainmenuUI
-        //Activate pausemenuUI
+        //Deactivate mainmenuUI, title
+        mainMenu.gameObject.SetActive(false);
+        mainMenu.parent.parent.GetComponentInChildren<TextMeshProUGUI>().gameObject.SetActive(false);
+        //Activate pausemenuUI, background
+        pauseMenu.gameObject.SetActive(true);
+        pauseMenu.parent.parent.GetComponentInChildren<Image>().gameObject.SetActive(true);
+        //Deactivate parent containing all menus(MenuSystem)
+        pauseMenu.parent.parent.gameObject.SetActive(false);
+
+        //Start game
         GameManager.instance.Initialise(singlePlayer);
-            //Make icosahedron visible
-
-    }
-
-    private IEnumerator LoadScene(string scene)
-    {
-        GameObject ls = Instantiate(loadingScreen);
-
-        yield return SceneManager.LoadSceneAsync(scene);
-        DontDestroyOnLoad(gameObject);
-
-        yield return SceneManager.UnloadSceneAsync(scene);
-        Destroy(ls);
-        Destroy(gameObject);
     }
 
     public void Quit()
@@ -63,7 +64,11 @@ public class MenuScript : MonoBehaviour {
 
     public void GoToMenu()
     {
-        StartCoroutine(LoadScene(menuScene));
+    }
+
+    public void TogglePauseMenu(bool isPaused)
+    {
+        pauseMenu.parent.parent.gameObject.SetActive(isPaused);
     }
 
     public void ToggleAudio()
