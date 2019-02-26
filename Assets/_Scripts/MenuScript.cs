@@ -61,6 +61,8 @@ public class MenuScript : MonoBehaviour {
         //Deactivate parent containing all menus(MenuSystem)
         pauseMenu.parent.parent.gameObject.SetActive(false);
 
+        AudioManager.instance.PlayGameMusic();
+
         //Start game
         GameManager.instance.Initialise(singlePlayer);
     }
@@ -82,6 +84,7 @@ public class MenuScript : MonoBehaviour {
         //Dectivate pausemenuUI, background
         pauseMenu.gameObject.SetActive(false);
         pauseMenuBackground.SetActive(false);
+        AudioManager.instance.PlayMenuMusic();
 
         //Activate parent containing all menus(MenuSystem)
         pauseMenu.parent.parent.gameObject.SetActive(true);

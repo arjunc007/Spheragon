@@ -47,6 +47,21 @@ public class AudioManager : MonoBehaviour {
         }
 	}
 
+    public void PlayMenuMusic()
+    {
+        if (MenuScript.instance.mainMenu.gameObject.activeSelf)
+        {
+            audioSource.clip = menuMusicClip; ;
+            audioSource.Play();
+        }
+    }
+
+    public void PlayGameMusic()
+    {
+        if (MenuScript.instance.pauseMenu.gameObject.activeSelf)
+            audioSource.clip = gameMusicClips[Random.Range(0, gameMusicClips.Length)];
+    }
+
     public void ToggleMusic()
     {
         if (audioSource.isPlaying)

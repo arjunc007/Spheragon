@@ -630,7 +630,8 @@ public class GameManager : MonoBehaviour {
         foreach (var icon in icons)
             Destroy(icon.gameObject);
         StopAllCoroutines();
-        HUD.gameObject.SetActive(false);
+        foreach (Transform child in HUD.parent)
+            child.gameObject.SetActive(false);
         Destroy(sphere.gameObject);
     }
 
