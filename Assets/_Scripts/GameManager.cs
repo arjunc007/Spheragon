@@ -201,7 +201,7 @@ public class GameManager : MonoBehaviour {
     public void PauseGame()
     {
         isPaused = !isPaused;
-        pauseClicks = !pauseClicks;
+        //pauseClicks = !pauseClicks;
         MenuScript.instance.TogglePauseMenu(isPaused);
     }
 
@@ -452,6 +452,9 @@ public class GameManager : MonoBehaviour {
         float dt = 0;
         while (scoreIndicator.GetChild(1).GetComponent<Image>().fillAmount != targetFillAmount)
         {
+            if (isPaused)
+                yield return null;
+
             scoreIndicator.GetChild(1).GetComponent<Image>().fillAmount = Mathf.Lerp(initialFillAmount, targetFillAmount, dt / 0.2f);
             dt += Time.deltaTime;
             yield return null;
@@ -467,6 +470,9 @@ public class GameManager : MonoBehaviour {
 
         while (turnIndicator.transform.GetChild(0).rotation != endRot)
         {
+            if (isPaused)
+                yield return null;
+
             turnIndicator.transform.GetChild(0).rotation = Quaternion.Lerp(startRot, endRot, dt / 0.1f);
             dt += Time.deltaTime;
             yield return null;
@@ -499,6 +505,9 @@ public class GameManager : MonoBehaviour {
         dt = 0;
         while (turnIndicator.GetChild(0).rotation != endRot)
         {
+            if (isPaused)
+                yield return null;
+
             turnIndicator.GetChild(0).rotation = Quaternion.Lerp(startRot, endRot, dt / 0.1f);
             dt += Time.deltaTime;
             yield return null;
@@ -551,8 +560,11 @@ public class GameManager : MonoBehaviour {
 
     private IEnumerator KeepRotating()
     {
-        while(flickSpeed.magnitude > 0)
+        while (flickSpeed.magnitude > 0)
         {
+            if (isPaused)
+                yield return null;
+
             sphere.Rotate(Vector3.Cross(flickSpeed, Vector3.forward), Space.World);
             Vector3 newSpeed = flickSpeed - flickSpeed * Time.deltaTime;
             if (Vector3.Dot(newSpeed, flickSpeed) > 0)
@@ -607,6 +619,9 @@ public class GameManager : MonoBehaviour {
         pauseClicks = true;
         while (Vector3.Angle(t.GetNormal(), Vector3.back) > 20)
         {
+            if (isPaused)
+                yield return null;
+
             float step = aiRotSpeed * Time.deltaTime;
             sphere.Rotate(Vector3.Cross(t.GetNormal(), Vector3.back), step, Space.World);
 

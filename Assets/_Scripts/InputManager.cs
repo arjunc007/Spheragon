@@ -6,12 +6,11 @@ public class InputManager : MonoBehaviour {
     public static InputManager instance = null;
     private Vector2 dragSpeed;
 
-    private bool useTouch = false;
-
     private Vector3 initialMousePosition;
     private Vector3 lastMousePosition;
     private Vector3 currentMousePosition;
     private float pinchDiff;
+    private bool portraitMode;
 
     private Camera cam;
     /// <summary>
@@ -32,6 +31,9 @@ public class InputManager : MonoBehaviour {
     public delegate void OnPinchEventHandler(float diff);
     public event OnPinchEventHandler PinchEvent;
 
+    public delegate void OnOrientationEventHandler();
+    public event OnOrientationEventHandler OrientationEvent;
+
     // Use this for initialization
     void Awake () {
         if(instance == null)
@@ -49,15 +51,15 @@ public class InputManager : MonoBehaviour {
     {
         cam = Camera.main;
 
-        if (Application.platform == RuntimePlatform.Android)
-            useTouch = true;
+        portraitMode = Screen.height > Screen.width;
     }
 
     // Update is called once per frame
     void Update () {
+        Debug.Log(GameManager.isPaused);
         if (!GameManager.isPaused)
         {
-            if(useTouch)
+#if UNITY_ANDROID
             {
                 if (Input.touchCount == 1)
                 {
@@ -98,7 +100,8 @@ public class InputManager : MonoBehaviour {
                 }
 
             }   //Use Touch
-            
+#endif
+
             if(Input.mousePresent)
             {
                 if (Input.GetMouseButtonDown(0))
@@ -123,6 +126,23 @@ public class InputManager : MonoBehaviour {
                     OnPinch();
                 }
             }   //Not using touch
+
+            if (Screen.height > Screen.width)
+            {
+                if(!portraitMode)
+                {
+                    portraitMode = true;
+                    OnOrientationChange();
+                }
+            }
+            else
+            {
+                if(portraitMode)
+                {
+                    portraitMode = false;
+                    OnOrientationChange();
+                }
+            }
         }   //Game Loop
         else
         {
@@ -190,5 +210,18 @@ public class InputManager : MonoBehaviour {
         {
             PinchEvent(pinchDiff);
         }
+    }
+
+    protected virtual void OnOrientationChange()
+    {
+        if(OrientationEvent != null)
+        {
+            OrientationEvent();
+        }
+    }
+
+    public bool IsPortrait()
+    {
+        return portraitMode;
     }
 }

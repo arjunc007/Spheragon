@@ -65,6 +65,8 @@ public class MenuScript : MonoBehaviour {
 
         //Start game
         GameManager.instance.Initialise(singlePlayer);
+
+        AdManager.instance.ShowAd(true);
     }
 
     public void Quit()
@@ -74,6 +76,9 @@ public class MenuScript : MonoBehaviour {
 
     public void GoToMenu()
     {
+        //Hide Ad
+        AdManager.instance.ShowAd(false);
+
         //Destoy game Data (Reset Game, but don't call Initialise again)
         GameManager.instance.ClearScene();
 

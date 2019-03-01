@@ -106,6 +106,9 @@ public class Tile : MonoBehaviour
 
         do
         {
+            if (GameManager.isPaused)
+                yield return null;
+
             t = (Time.time - startTime) / transitionTime;
             material.SetFloat("_Duration", t);
             yield return null;
@@ -172,6 +175,9 @@ public class Tile : MonoBehaviour
         //Speed in pixel/second
         while (powerIcon.position.z != -13)
         {
+            if (GameManager.isPaused)
+                yield return null;
+
             powerIcon.position = Vector3.Lerp(startPos, endPos, speed * animTime);
             powerIcon.rotation = Quaternion.Lerp(startRot, endRot, speed * animTime);
             animTime += Time.deltaTime;
@@ -201,6 +207,8 @@ public class Tile : MonoBehaviour
         float alphaValue = 1;
         while(sr.color.a > 0)
         {
+            if (GameManager.isPaused)
+                yield return null;
             alphaValue = Mathf.Lerp(1, 0, t);
             sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, alphaValue);
             
