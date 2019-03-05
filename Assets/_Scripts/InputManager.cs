@@ -56,7 +56,6 @@ public class InputManager : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-        Debug.Log(GameManager.isPaused);
         if (!GameManager.isPaused)
         {
 #if UNITY_ANDROID
