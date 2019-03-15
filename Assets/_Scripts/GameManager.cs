@@ -37,6 +37,7 @@ public class GameManager : MonoBehaviour {
     private int playerTurn;
     private List<Player> players = new List<Player>();
     private HashSet<Tile> freeTiles = new HashSet<Tile>();
+    int numHexTiles = 0;
     /// <summary>
     /// number of instances of changeneighbour currently running
     /// </summary>
@@ -107,6 +108,8 @@ public class GameManager : MonoBehaviour {
             }
         }
 
+        numHexTiles = freeTiles.Count - pentaTiles.Count;
+
         //Get a pentagon
         RaycastHit hit;
         
@@ -116,8 +119,12 @@ public class GameManager : MonoBehaviour {
         Tile p2Tile = hit.transform.gameObject.GetComponent<Tile>();
 
         //Bring first player to front
-        sphere.Rotate(Vector3.Cross(pentaTiles[0].GetNormal(), Vector3.back), Vector3.Angle(pentaTiles[0].GetNormal(), Vector3.back), Space.World);
-
+        if(playerTurn == 0)
+            sphere.Rotate(Vector3.Cross(pentaTiles[0].GetNormal(), Vector3.back), Vector3.Angle(pentaTiles[0].GetNormal(), Vector3.back), Space.World);
+        else
+        {
+            sphere.Rotate(Vector3.Cross(p2Tile.GetNormal(), Vector3.back), Vector3.Angle(p2Tile.GetNormal(), Vector3.back), Space.World);
+        }
         //Initialise both by making them startTiles
         pentaTiles[0].SetOwner(players[0]);
         freeTiles.Remove(pentaTiles[0]);
@@ -196,6 +203,8 @@ public class GameManager : MonoBehaviour {
         scoreIndicator.GetChild(0).GetComponent<Image>().color = players[1].GetColor();
         scoreIndicator.GetChild(1).GetComponent<Image>().color = players[0].GetColor();
         scoreIndicator.GetChild(1).GetComponent<Image>().fillAmount = 0.5f;
+
+        endMenu.gameObject.SetActive(false);
     }
 
     public void PauseGame()
@@ -323,6 +332,9 @@ public class GameManager : MonoBehaviour {
             }
             else
             {
+                //HexTile was clicked
+                numHexTiles--;
+
                 clickedTile.ChangeTo(players[playerTurn]);
 
                 players[playerTurn].AddTile(clickedTile);
@@ -353,7 +365,7 @@ public class GameManager : MonoBehaviour {
             pauseClicks = false;
         }
 
-        if (freeTiles.Count < 1)
+        if (numHexTiles < 1)
         {
             StartCoroutine(EndGame());
         }
@@ -383,6 +395,7 @@ public class GameManager : MonoBehaviour {
             endMenu.GetChild(1).GetComponent<Image>().color = players[0].GetColor();
         }
 
+        endMenu.gameObject.SetActive(true);
         uiCanvas.GetChild(0).gameObject.SetActive(true);
 
     }

@@ -69,6 +69,10 @@ public class Player
 
     public void ExtraTurn(bool b)
     {
+        //Disable other power
+        if (depth > 1)
+            depth = 1;
+
         extraTurn = b;
     }
 
