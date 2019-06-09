@@ -539,14 +539,16 @@ public class GameManager : MonoBehaviour {
     }
 
     //Rotate sphere in world space on drag
-    public void OnDrag(Vector3 diff)
+    public void OnDrag(Vector3 start, Vector3 diff)
     {
         flickSpeed = Vector3.zero;
         if (!(isPaused || pauseClicks))
         {
             Vector3 axis = Vector3.Cross(diff, Vector3.forward).normalized;
 
-            sphere.Rotate(axis * zoomedRotSpeed, Space.World);
+            float angle = Vector3.Angle(start - diff, start);
+
+            sphere.Rotate(axis * angle * dragSpeed, Space.World);
         }
     }
 

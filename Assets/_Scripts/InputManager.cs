@@ -22,7 +22,7 @@ public class InputManager : MonoBehaviour {
     public delegate void OnClickEventHandler(Vector3 pos);
     public event OnClickEventHandler ClickedEvent;
 
-    public delegate void OnDragEventHandler(Vector3 diff);
+    public delegate void OnDragEventHandler(Vector3 start, Vector3 diff);
     public event OnDragEventHandler DraggingEvent;
 
     public delegate void OnDragEndEventHandler(Vector3 speed);
@@ -59,7 +59,6 @@ public class InputManager : MonoBehaviour {
         if (!GameManager.isPaused)
         {
 #if UNITY_ANDROID
-            {
                 if (Input.touchCount == 1)
                 {
                     Touch touch = Input.GetTouch(0);
@@ -69,6 +68,7 @@ public class InputManager : MonoBehaviour {
                             BeginInput(touch.position);
                             break;
                         case TouchPhase.Moved:
+                            currentMousePosition = touch.position;
                             ContinueInput(touch.deltaPosition * Time.deltaTime / touch.deltaTime);
                             lastMousePosition = touch.position;
                             break;
@@ -97,8 +97,6 @@ public class InputManager : MonoBehaviour {
 
                     OnPinch();
                 }
-
-            }   //Use Touch
 #endif
 
             if(Input.mousePresent)
@@ -191,7 +189,7 @@ public class InputManager : MonoBehaviour {
     {
         if(DraggingEvent != null)
         {
-            DraggingEvent(dragSpeed);
+            DraggingEvent(currentMousePosition, dragSpeed);
         }
     }
 
