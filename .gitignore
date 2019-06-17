@@ -4,6 +4,7 @@
 [Bb]uild/
 [Bb]uilds/
 Assets/AssetStoreTools*
+Builds-1.10-v4.symbols.zip
 
 # Visual Studio cache directory
 .vs/
