@@ -92,7 +92,6 @@ public class GameManager : MonoBehaviour {
 
         if (tiles == null)
         {
-            Debug.Log("No tiles available");
             return;
         }
 
@@ -172,7 +171,6 @@ public class GameManager : MonoBehaviour {
             }
             else
             {
-                Debug.Log("More tiles than power types. Bailing!");
                 break;
             }
 
@@ -180,6 +178,8 @@ public class GameManager : MonoBehaviour {
             Instantiate(powerParticles, tile.transform.position, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
 
             pentaTiles.Remove(tile);
+
+            Application.targetFrameRate = 60;
         }
 
         isPaused = false;
@@ -669,7 +669,6 @@ public class GameManager : MonoBehaviour {
     {
         while (sphere != null)
         {
-            Debug.Log("Waiting to destroy");
             yield return null;
         }
 

@@ -39,6 +39,8 @@ public class MenuScript : MonoBehaviour {
         title = mainMenu.parent.parent.GetComponentInChildren<TextMeshProUGUI>().gameObject;
         pauseMenuBackground = pauseMenu.parent.parent.GetComponentInChildren<Image>().gameObject;
         pauseMenuBackground.SetActive(false);
+
+        Application.targetFrameRate = 30;
     }
 
     // Update is called once per frame
@@ -93,6 +95,8 @@ public class MenuScript : MonoBehaviour {
 
         //Activate parent containing all menus(MenuSystem)
         pauseMenu.parent.parent.gameObject.SetActive(true);
+
+        Application.targetFrameRate = 30;
     }
 
     public void TogglePauseMenu(bool isPaused)
