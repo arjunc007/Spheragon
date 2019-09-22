@@ -178,8 +178,6 @@ public class GameManager : MonoBehaviour {
             Instantiate(powerParticles, tile.transform.position, Quaternion.LookRotation(tile.GetNormal(), Vector3.up), tile.transform);
 
             pentaTiles.Remove(tile);
-
-            Application.targetFrameRate = 60;
         }
 
         isPaused = false;
