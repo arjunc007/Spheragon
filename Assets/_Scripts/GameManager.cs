@@ -395,6 +395,10 @@ public class GameManager : MonoBehaviour {
 
         endMenu.gameObject.SetActive(true);
         uiCanvas.GetChild(0).gameObject.SetActive(true);
+        if(GameData.musicOn)
+        {
+            uiCanvas.GetChild(0).GetComponent<AudioSource>().Play();
+        }
 
     }
 
@@ -654,6 +658,9 @@ public class GameManager : MonoBehaviour {
 
     public void ClearScene()
     {
+        freeTiles.Clear();
+        numHexTiles = 300;
+
         var icons = FindObjectsOfType<SpriteRenderer>();
         foreach (var icon in icons)
             Destroy(icon.gameObject);

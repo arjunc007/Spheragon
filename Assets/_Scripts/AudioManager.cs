@@ -49,9 +49,9 @@ public class AudioManager : MonoBehaviour {
 
     public void PlayMenuMusic()
     {
-        if (MenuScript.instance.mainMenu.gameObject.activeSelf)
+        if (MenuScript.instance.mainMenu.gameObject.activeSelf && GameData.musicOn)
         {
-            audioSource.clip = menuMusicClip; ;
+            audioSource.clip = menuMusicClip;
             audioSource.Play();
         }
     }
