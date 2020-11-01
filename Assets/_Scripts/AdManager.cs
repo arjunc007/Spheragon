@@ -29,6 +29,8 @@ public class AdManager : MonoBehaviour
         // Initialize the Google Mobile Ads SDK.
         MobileAds.Initialize(initStatus => { });
 
+        Debug.Log("Ads Initiaised");
+
         this.RequestBanner();
     }
 
@@ -44,7 +46,7 @@ public class AdManager : MonoBehaviour
             gameUI.offsetMax = new Vector2(gameUI.offsetMax.x, -50);
         }
 
-        bannerView = new BannerView(testAdID, AdSize.Banner, AdPosition.Top);
+        bannerView = new BannerView(bannerAdID_android, AdSize.Banner, AdPosition.Top);
 
         // Create an empty ad request.
         //AdRequest request = new AdRequest.Builder().AddTestDevice("61FF8CC5A520CDFF8D2BDE246EF96DCA").Build();
@@ -56,6 +58,8 @@ public class AdManager : MonoBehaviour
         // Load the banner with the request.
         bannerView.LoadAd(request);
 
+        Debug.Log("AdLoaded");
+
         bannerView.Hide();
     }
 
@@ -65,6 +69,8 @@ public class AdManager : MonoBehaviour
             bannerView.Show();
         else
             bannerView.Hide();
+
+        Debug.Log("Ad Shown: " + show.ToString());
     }
 
     private void OnApplicationQuit()
